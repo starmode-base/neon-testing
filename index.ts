@@ -53,9 +53,25 @@ export function makeNeonTesting({
   parentBranchId?: string;
   schemaOnly?: "schema-only";
 }) {
-  return (parentBranchId?: string, schemaOnly?: "schema-only") => {
-    const apiClient = createApiClient({ apiKey });
+  const apiClient = createApiClient({ apiKey });
 
+  /**
+   * Delete all test branches
+   */
+  async function deleteAllTestBranches() {
+    const { data } = await apiClient.listProjectBranches({ projectId });
+
+    for (const branch of data.branches) {
+      const isTestBranch =
+        data.annotations[branch.id]?.value["integration-test"] === "true";
+
+      if (isTestBranch) {
+        await apiClient.deleteProjectBranch(projectId, branch.id);
+      }
+    }
+  }
+
+  const testDbSetup = (parentBranchId?: string, schemaOnly?: "schema-only") => {
     // Each test file gets its own branch ID and database client
     let branchId: string | undefined;
 
@@ -89,23 +105,6 @@ export function makeNeonTesting({
     }
 
     /**
-     * Delete all test branches
-     */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async function deleteAllTestBranches() {
-      const { data } = await apiClient.listProjectBranches({ projectId });
-
-      for (const branch of data.branches) {
-        const isTestBranch =
-          data.annotations[branch.id]?.value["integration-test"] === "true";
-
-        if (isTestBranch) {
-          await apiClient.deleteProjectBranch(projectId, branch.id);
-        }
-      }
-    }
-
-    /**
      * Delete the test branch
      */
     async function deleteBranch() {
@@ -128,4 +127,9 @@ export function makeNeonTesting({
       // await deleteAllTestBranches();
     });
   };
+
+  // Attach the utility
+  testDbSetup.deleteAllTestBranches = deleteAllTestBranches;
+
+  return testDbSetup;
 }
