@@ -2,6 +2,9 @@
   "name": "neon-testing",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "format": "prettier --write ."
+  },
   "dependencies": {
     "@neondatabase/api-client": "^2.0.0"
   },
@@ -10,6 +13,7 @@
     "vitest": "^3.2.2"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "prettier": "^3.5.3"
   }
 }
