@@ -1,3 +1,8 @@
+/**
+ * @neondatabase/serverless
+ *
+ * https://www.npmjs.com/package/@neondatabase/serverless
+ */
 import { beforeEach, expect, test } from "vitest";
 import { withNeonTestDatabase } from "./test-helpers";
 import { neon } from "@neondatabase/serverless";

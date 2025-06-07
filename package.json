@@ -17,6 +17,8 @@
     "@neondatabase/serverless": "^1.0.1",
     "@types/bun": "latest",
     "dotenv": "^16.5.0",
+    "pg": "^8.16.0",
+    "postgres": "^3.4.7",
     "prettier": "^3.5.3"
   }
 }

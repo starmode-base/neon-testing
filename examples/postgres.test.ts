@@ -1,11 +1,11 @@
 /**
- * @neondatabase/serverless
+ * Postgres.js
  *
- * https://www.npmjs.com/package/@neondatabase/serverless
+ * https://www.npmjs.com/package/postgres
  */
 import { expect, test } from "vitest";
 import { withNeonTestDatabase } from "./test-helpers";
-import { neon } from "@neondatabase/serverless";
+import postgres from "postgres";
 
 /**
  * Enable Neon database testing environment
@@ -16,8 +16,8 @@ import { neon } from "@neondatabase/serverless";
  */
 withNeonTestDatabase();
 
-test("Neon serverless driver", async () => {
-  const sql = neon(process.env.DATABASE_URL!);
+test("Postgres.js driver", async () => {
+  const sql = postgres(process.env.DATABASE_URL!);
 
   await sql`
     CREATE TABLE users (
@@ -34,13 +34,13 @@ test("Neon serverless driver", async () => {
   expect(newUser).toStrictEqual({ id: 1, name: "Ellen Ripley" });
 
   const users = await sql`SELECT * FROM users`;
-  expect(users).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
+  expect([...users]).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
 });
 
-test("Neon serverless driver with transactions", async () => {
-  const sql = neon(process.env.DATABASE_URL!);
+test("Postgres.js driver with transactions", async () => {
+  const sql = postgres(process.env.DATABASE_URL!);
 
-  await sql.transaction((tx) => [
+  await sql.begin((tx) => [
     tx`
       INSERT INTO users (name)
       VALUES ('Rebecca Jorden')
@@ -48,7 +48,7 @@ test("Neon serverless driver with transactions", async () => {
   ]);
 
   const users = await sql`SELECT * FROM users`;
-  expect(users).toStrictEqual([
+  expect([...users]).toStrictEqual([
     // Note the same Neon branch is used for all tests in the same file, clean
     // it up manually if you want a clean slate for each test.
     { id: 1, name: "Ellen Ripley" },
