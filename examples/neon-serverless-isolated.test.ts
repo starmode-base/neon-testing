@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { beforeEach, expect, test } from "vitest";
 import { withNeonTestDatabase } from "./test-helpers";
 import { neon } from "@neondatabase/serverless";
 
@@ -11,8 +11,14 @@ import { neon } from "@neondatabase/serverless";
  */
 withNeonTestDatabase();
 
-test("Neon serverless driver", async () => {
+/**
+ * To isolate tests within a file, reset the Neon branch before each test
+ */
+beforeEach(async () => {
   const sql = neon(process.env.DATABASE_URL!);
+
+  await sql`DROP SCHEMA IF EXISTS public CASCADE`;
+  await sql`CREATE SCHEMA public`;
 
   await sql`
     CREATE TABLE users (
@@ -20,6 +26,12 @@ test("Neon serverless driver", async () => {
       name TEXT NOT NULL
     )
   `;
+
+  await sql`DELETE FROM users`;
+});
+
+test("Neon serverless driver", async () => {
+  const sql = neon(process.env.DATABASE_URL!);
 
   const [newUser] = await sql`
     INSERT INTO users (name)
@@ -43,10 +55,5 @@ test("Neon serverless driver with transaction", async () => {
   ]);
 
   const users = await sql`SELECT * FROM users`;
-  expect(users).toStrictEqual([
-    // Note the same Neon branch is used for all tests in the same file, clean
-    // it up manually if you want a clean slate for each test.
-    { id: 1, name: "Ellen Ripley" },
-    { id: 2, name: "Rebecca Jorden" },
-  ]);
+  expect(users).toStrictEqual([{ id: 1, name: "Rebecca Jorden" }]);
 });
