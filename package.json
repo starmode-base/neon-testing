@@ -3,6 +3,7 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
+    "test": "vitest",
     "format": "prettier --write ."
   },
   "dependencies": {
@@ -13,7 +14,9 @@
     "vitest": "^3.2.2"
   },
   "devDependencies": {
+    "@neondatabase/serverless": "^1.0.1",
     "@types/bun": "latest",
+    "dotenv": "^16.5.0",
     "prettier": "^3.5.3"
   }
 }
