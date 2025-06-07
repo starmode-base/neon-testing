@@ -1,8 +1,31 @@
 /**
  * https://neon.com/docs/reference/typescript-sdk
  */
-import { createApiClient, EndpointType } from "@neondatabase/api-client";
+import {
+  createApiClient,
+  EndpointType,
+  type ConnectionDetails,
+} from "@neondatabase/api-client";
 import { afterAll, beforeAll } from "vitest";
+
+/**
+ * Creates a PostgreSQL connection URI from connection parameters
+ *
+ * @param connectionParameters - The connection parameters object
+ * @param type - The type of connection to create (pooler or direct)
+ * @returns A PostgreSQL connection URI string
+ */
+function createConnectionUri(
+  connectionParameters: ConnectionDetails,
+  type: "pooler" | "direct"
+) {
+  const { role, password, host, pooler_host, database } =
+    connectionParameters.connection_parameters;
+
+  const hostname = type === "pooler" ? pooler_host : host;
+
+  return `postgresql://${role}:${password}@${hostname}/${database}?sslmode=require`;
+}
 
 /**
  * Factory function that creates a Neon test database setup/teardown function
@@ -57,12 +80,12 @@ export function makeNeonTestDatabase({
 
       branchId = data.branch.id;
 
-      const connectionUri = data.connection_uris?.[0]?.connection_uri;
+      const [connectionUri] = data.connection_uris ?? [];
       if (!connectionUri) {
         throw new Error("No connection URI found");
       }
 
-      return connectionUri;
+      return createConnectionUri(connectionUri, "pooler");
     }
 
     /**
@@ -95,8 +118,7 @@ export function makeNeonTestDatabase({
     }
 
     beforeAll(async () => {
-      const connectionUri = await createBranch();
-      process.env.DATABASE_URL = connectionUri;
+      process.env.DATABASE_URL = await createBranch();
     });
 
     afterAll(async () => {
