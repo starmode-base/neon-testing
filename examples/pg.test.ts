@@ -4,7 +4,7 @@
  * https://www.npmjs.com/package/pg
  */
 import { expect, test } from "vitest";
-import { withNeonTestDatabase } from "./test-helpers";
+import { withNeonTestBranch } from "./test-helpers";
 import { Pool } from "pg";
 
 /**
@@ -14,7 +14,7 @@ import { Pool } from "pg";
  * - Tests within a file are not isolated, they share the same branch instance
  * - The branch is deleted when all tests in the file have completed
  */
-withNeonTestDatabase();
+withNeonTestBranch();
 
 test("node-postgres driver", async () => {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL! });

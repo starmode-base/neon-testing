@@ -42,7 +42,7 @@ function createConnectionUri(
  *   new branch
  * - Deletes the test branch after the test suite runs
  */
-export function makeNeonTestDatabase({
+export function makeNeonTesting({
   apiKey,
   projectId,
   parentBranchId: factoryParentBranchId,

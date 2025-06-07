@@ -4,7 +4,7 @@
  * https://www.npmjs.com/package/@neondatabase/serverless
  */
 import { beforeEach, expect, test } from "vitest";
-import { withNeonTestDatabase } from "./test-helpers";
+import { withNeonTestBranch } from "./test-helpers";
 import { neon } from "@neondatabase/serverless";
 
 /**
@@ -14,7 +14,7 @@ import { neon } from "@neondatabase/serverless";
  * - Tests within a file are not isolated, they share the same branch instance
  * - The branch is deleted when all tests in the file have completed
  */
-withNeonTestDatabase();
+withNeonTestBranch();
 
 /**
  * To isolate tests within a file, reset the Neon branch before each test
