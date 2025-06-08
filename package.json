@@ -1,5 +1,19 @@
 {
   "name": "neon-testing",
+  "version": "1.0.0",
+  "description": "A Vitest utility for running database tests with isolated Neon branches",
+  "keywords": [
+    "neon",
+    "postgres",
+    "postgresql",
+    "testing",
+    "vitest"
+  ],
+  "author": "Mikael Lirbank",
+  "license": "MIT",
+  "repository": "https://github.com/starmode-base/neon-testing",
+  "homepage": "https://github.com/starmode-base/neon-testing",
+  "bugs": "https://github.com/starmode-base/neon-testing/issues",
   "module": "index.ts",
   "type": "module",
   "scripts": {
