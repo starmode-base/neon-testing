@@ -40,6 +40,9 @@ export interface NeonTestingOptions {
   endpoint?: "pooler" | "direct";
 }
 
+/** Options for overriding test database setup (excludes apiKey) */
+export type NeonTestingOverrides = Omit<Partial<NeonTestingOptions>, "apiKey">;
+
 /**
  * Factory function that creates a Neon test database setup/teardown function
  * for Vitest test suites.
@@ -56,37 +59,37 @@ export interface NeonTestingOptions {
  *   new branch
  * - Deletes the test branch after the test suite runs
  */
-export function makeNeonTesting({
-  apiKey,
-  projectId,
-  endpoint: endpoint = "pooler",
-  parentBranchId: factoryParentBranchId,
-  schemaOnly: factorySchemaOnly,
-}: NeonTestingOptions) {
-  const apiClient = createApiClient({ apiKey });
+export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
+  const apiClient = createApiClient({ apiKey: factoryOptions.apiKey });
 
   /**
    * Delete all test branches
    */
   async function deleteAllTestBranches() {
-    const { data } = await apiClient.listProjectBranches({ projectId });
+    const { data } = await apiClient.listProjectBranches({
+      projectId: factoryOptions.projectId,
+    });
 
     for (const branch of data.branches) {
       const isTestBranch =
         data.annotations[branch.id]?.value["integration-test"] === "true";
 
       if (isTestBranch) {
-        await apiClient.deleteProjectBranch(projectId, branch.id);
+        await apiClient.deleteProjectBranch(
+          factoryOptions.projectId,
+          branch.id
+        );
       }
     }
   }
 
   const testDbSetup = (
-    /** Override the parent branch ID  */
-    parentBranchId?: string,
-    /** Override the schema-only flag  */
-    schemaOnly?: boolean
+    /** Override any factory options except apiKey */
+    overrides?: NeonTestingOverrides
   ) => {
+    // Merge factory options with overrides
+    const options = { ...factoryOptions, ...overrides };
+
     // Each test file gets its own branch ID and database client
     let branchId: string | undefined;
 
@@ -96,12 +99,11 @@ export function makeNeonTesting({
      * @returns The connection URI for the new branch
      */
     async function createBranch() {
-      const { data } = await apiClient.createProjectBranch(projectId, {
+      const { data } = await apiClient.createProjectBranch(options.projectId, {
         branch: {
           name: `test/${crypto.randomUUID()}`,
-          parent_id: parentBranchId ?? factoryParentBranchId,
-          init_source:
-            (schemaOnly ?? factorySchemaOnly) ? "schema-only" : undefined,
+          parent_id: options.parentBranchId,
+          init_source: options.schemaOnly ? "schema-only" : undefined,
         },
         endpoints: [{ type: EndpointType.ReadWrite }],
         annotation_value: {
@@ -116,7 +118,7 @@ export function makeNeonTesting({
         throw new Error("No connection URI found");
       }
 
-      return createConnectionUri(connectionUri, endpoint);
+      return createConnectionUri(connectionUri, options.endpoint ?? "pooler");
     }
 
     /**
@@ -127,7 +129,7 @@ export function makeNeonTesting({
         throw new Error("No branch to delete");
       }
 
-      await apiClient.deleteProjectBranch(projectId, branchId);
+      await apiClient.deleteProjectBranch(options.projectId, branchId);
       branchId = undefined;
     }
 
