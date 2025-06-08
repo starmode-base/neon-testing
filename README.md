@@ -16,14 +16,6 @@ A Vitest utility for running database tests with isolated [Neon](https://neon.co
 1. **Test Execution**: Your tests run against the isolated database
 1. **Cleanup**: After tests complete, the branch is automatically deleted
 
-Each test file gets its own branch, but tests within a file share the same database instance.
-
-## Isolate individual tests
-
-Tests within a single test file shares the same database instance (Neon branch), so while all test files are isolated, tests within a test file are not. If you prefer individual tests within a test file to be isolated, [simply can clean up the database in a beforeEach lifecycle](examples/neon-serverless-http-isolated.test.ts).
-
-This works because Vitest runs test files in parallel, but tests within each test file are run one at the time.
-
 ## Quick start
 
 ### Prerequisites
@@ -71,12 +63,14 @@ Use the `makeNeonTesting` factory to generate a lifecycle function for your test
 // test-setup.ts
 import { makeNeonTesting } from "neon-testing";
 
-// Export a configured life cycle function to use in test files
+// Export a configured lifecycle function to use in test files
 export const withNeonTestBranch = makeNeonTesting({
   apiKey: "apiKey",
   projectId: "projectId",
 });
 ```
+
+See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L30-L41).
 
 #### 2. Enable database testing
 
@@ -111,7 +105,7 @@ Branch from a specific branch instead of main:
 ```typescript
 import { withNeonTestBranch } from "./test-setup";
 
-withNeonTestBranch("br-staging-123");
+withNeonTestBranch({ parentBranchId: "br-staging-123" });
 ```
 
 Don't copy data when branching:
@@ -119,8 +113,16 @@ Don't copy data when branching:
 ```typescript
 import { withNeonTestBranch } from "./test-setup";
 
-withNeonTestBranch(undefined, "schema-only");
+withNeonTestBranch({ schemaOnly: true });
 ```
+
+See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L30-L41).
+
+## Isolate individual tests
+
+Tests within a single test file share the same database instance (Neon branch), so while all test files are isolated, tests within a test file are not. If you prefer individual tests within a test file to be isolated, [simply clean up the database in a beforeEach lifecycle](examples/neon-serverless-http-isolated.test.ts).
+
+This works because Vitest runs test files in parallel, but tests within each test file run one at a time.
 
 ## License
 
@@ -132,4 +134,4 @@ Contributions are welcome! Please open issues or pull requests on [GitHub](https
 
 ## Support
 
-For questions or support, open an issue or join our [community discussions](#).
+For questions or support, open an issue on [GitHub](https://github.com/starmode-base/neon-testing/issues).
