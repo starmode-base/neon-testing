@@ -33,6 +33,7 @@ function createConnectionUri(
  *
  * @param apiKey - The Neon API key
  * @param projectId - The Neon project ID
+ * @param connectionType - The type of connection to create (pooler or direct)
  * @param parentBranchId - The parent branch ID for the new branch
  * @param schemaOnly - Whether to create a schema-only branch
  * @returns A setup/teardown function for Vitest test suites
@@ -45,11 +46,13 @@ function createConnectionUri(
 export function makeNeonTesting({
   apiKey,
   projectId,
+  connectionType = "pooler",
   parentBranchId: factoryParentBranchId,
   schemaOnly: factorySchemaOnly,
 }: {
   apiKey: string;
   projectId: string;
+  connectionType?: "pooler" | "direct";
   parentBranchId?: string;
   schemaOnly?: "schema-only";
 }) {
@@ -101,7 +104,7 @@ export function makeNeonTesting({
         throw new Error("No connection URI found");
       }
 
-      return createConnectionUri(connectionUri, "pooler");
+      return createConnectionUri(connectionUri, connectionType);
     }
 
     /**
