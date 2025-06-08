@@ -18,7 +18,8 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "release": "bun publish && git tag v$(bun -p \"require('./package.json').version\") && git push --tags"
   },
   "dependencies": {
     "@neondatabase/api-client": "^2.0.0"
