@@ -11,14 +11,18 @@
   },
   "peerDependencies": {
     "typescript": "^5",
-    "vitest": "^3.2.2"
+    "vitest": "^3"
   },
   "devDependencies": {
     "@neondatabase/serverless": "^1.0.1",
-    "@types/bun": "latest",
     "dotenv": "^16.5.0",
     "pg": "^8.16.0",
     "postgres": "^3.4.7",
     "prettier": "^3.5.3"
-  }
+  },
+  "files": [
+    "index.ts",
+    "README.md",
+    "LICENSE"
+  ]
 }
