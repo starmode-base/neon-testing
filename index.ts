@@ -27,13 +27,26 @@ function createConnectionUri(
   return `postgresql://${role}:${password}@${hostname}/${database}?sslmode=require`;
 }
 
+export interface NeonTestingOptions {
+  /** The Neon API key, this is used to create and teardown test branches */
+  apiKey: string;
+  /** The Neon project ID to operate on */
+  projectId: string;
+  /** The parent branch ID for the new branch */
+  parentBranchId?: string;
+  /** Whether to create a schema-only branch (default: false) */
+  schemaOnly?: boolean;
+  /** The type of connection to create (pooler is recommended) */
+  endpoint?: "pooler" | "direct";
+}
+
 /**
  * Factory function that creates a Neon test database setup/teardown function
  * for Vitest test suites.
  *
  * @param apiKey - The Neon API key
  * @param projectId - The Neon project ID
- * @param connectionType - The type of connection to create (pooler or direct)
+ * @param endpoint - The type of connection to create (pooler or direct)
  * @param parentBranchId - The parent branch ID for the new branch
  * @param schemaOnly - Whether to create a schema-only branch
  * @returns A setup/teardown function for Vitest test suites
@@ -46,16 +59,10 @@ function createConnectionUri(
 export function makeNeonTesting({
   apiKey,
   projectId,
-  connectionType = "pooler",
+  endpoint: endpoint = "pooler",
   parentBranchId: factoryParentBranchId,
   schemaOnly: factorySchemaOnly,
-}: {
-  apiKey: string;
-  projectId: string;
-  connectionType?: "pooler" | "direct";
-  parentBranchId?: string;
-  schemaOnly?: "schema-only";
-}) {
+}: NeonTestingOptions) {
   const apiClient = createApiClient({ apiKey });
 
   /**
@@ -74,7 +81,12 @@ export function makeNeonTesting({
     }
   }
 
-  const testDbSetup = (parentBranchId?: string, schemaOnly?: "schema-only") => {
+  const testDbSetup = (
+    /** Override the parent branch ID  */
+    parentBranchId?: string,
+    /** Override the schema-only flag  */
+    schemaOnly?: boolean
+  ) => {
     // Each test file gets its own branch ID and database client
     let branchId: string | undefined;
 
@@ -104,7 +116,7 @@ export function makeNeonTesting({
         throw new Error("No connection URI found");
       }
 
-      return createConnectionUri(connectionUri, connectionType);
+      return createConnectionUri(connectionUri, endpoint);
     }
 
     /**

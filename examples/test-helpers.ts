@@ -27,5 +27,5 @@ export const withNeonTestBranch = makeNeonTesting({
 export const withNeonTestBranchDirect = makeNeonTesting({
   apiKey: process.env.NEON_API_KEY!,
   projectId: process.env.NEON_PROJECT_ID!,
-  connectionType: "direct",
+  endpoint: "direct",
 });
