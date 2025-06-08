@@ -11,9 +11,9 @@ A Vitest utility for running database tests with isolated [Neon](https://neon.co
 
 ## How it works
 
-1. **Branch Creation**: Before tests run, a new Neon branch is created with a unique name
-1. **Environment Setup**: `DATABASE_URL` is set to point to your test branch
-1. **Test Execution**: Your tests run against the isolated database
+1. **Branch creation**: Before tests run, a new Neon branch is created with a unique name
+1. **Environment setup**: `DATABASE_URL` is set to point to your test branch
+1. **Test execution**: Your tests run against the isolated database
 1. **Cleanup**: After tests complete, the branch is automatically deleted
 
 ## Quick start
@@ -135,3 +135,11 @@ Contributions are welcome! Please open issues or pull requests on [GitHub](https
 ## Support
 
 For questions or support, open an issue on [GitHub](https://github.com/starmode-base/neon-testing/issues).
+
+## Commercial support
+
+Need professional help with database testing, AI integration, or modern web development?
+
+**[STΛR MODΞ](https://www.starmode.dev/)** - I run this AI development studio with data scientist and ML/AI expert Spencer Smith. We specialize in building AI-first applications, advanced AI workflows, and agentic networks. We help companies build reliable AI solutions.
+
+**[Mikael Lirbank](https://www.lirbank.com/)** - My individual consulting practice for web application development, test automation, code quality, and technical architecture.
