@@ -16,13 +16,13 @@ import { neon } from "@neondatabase/serverless";
  */
 withNeonTestBranch();
 
-test("Neon serverless driver", async () => {
+test("Neon serverless driver (http)", async () => {
   const sql = neon(process.env.DATABASE_URL!);
 
   await sql`
     CREATE TABLE users (
       id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL
+      name TEXT NOT NULL UNIQUE
     )
   `;
 
@@ -37,21 +37,23 @@ test("Neon serverless driver", async () => {
   expect(users).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
 });
 
-test("Neon serverless driver with transactions", async () => {
+test("Neon serverless driver with transactions (http)", async () => {
   const sql = neon(process.env.DATABASE_URL!);
 
-  await sql.transaction((tx) => [
-    tx`
-      INSERT INTO users (name)
-      VALUES ('Rebecca Jorden')
-    `,
-  ]);
+  try {
+    await sql`BEGIN`;
+    await sql`INSERT INTO users (name) VALUES ('Rebecca Jorden')`;
+    await sql`INSERT INTO users (name) VALUES ('Rebecca Jorden')`;
+    await sql`COMMIT`;
+  } catch (error) {
+    await sql`ROLLBACK`;
+  }
 
   const users = await sql`SELECT * FROM users`;
   expect(users).toStrictEqual([
     // Note the same Neon branch is used for all tests in the same file, clean
     // it up manually if you want a clean slate for each test.
     { id: 1, name: "Ellen Ripley" },
-    { id: 2, name: "Rebecca Jorden" },
+    { id: 2, name: "Rebecca Jorden" }, // Tx didn't roll back
   ]);
 });
