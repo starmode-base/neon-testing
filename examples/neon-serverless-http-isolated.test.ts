@@ -1,6 +1,8 @@
 /**
  * @neondatabase/serverless
  *
+ * Does not support interactive transactions
+ *
  * https://www.npmjs.com/package/@neondatabase/serverless
  */
 import { beforeEach, expect, test } from "vitest";

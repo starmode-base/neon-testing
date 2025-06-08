@@ -1,9 +1,11 @@
 /**
  * node-postgres
  *
+ * Supports interactive transactions
+ *
  * https://www.npmjs.com/package/pg
  */
-import { expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { withNeonTestBranch } from "./test-helpers";
 import { Pool } from "pg";
 
@@ -16,49 +18,73 @@ import { Pool } from "pg";
  */
 withNeonTestBranch();
 
-test("node-postgres driver", async () => {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+describe("node-postgres driver", () => {
+  test("create table", async () => {
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
 
-  await pool.query(`
-    CREATE TABLE users (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL
-    )
-  `);
+    await pool.query(`
+      CREATE TABLE users (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE
+      )
+    `);
 
-  const newUser = await pool.query(`
-    INSERT INTO users (name)
-    VALUES ('Ellen Ripley')
-    RETURNING *
-  `);
-  expect(newUser.rows[0]).toStrictEqual({ id: 1, name: "Ellen Ripley" });
+    const newUser = await pool.query(`
+      INSERT INTO users (name)
+      VALUES ('Ellen Ripley')
+      RETURNING *
+    `);
+    expect(newUser.rows[0]).toStrictEqual({ id: 1, name: "Ellen Ripley" });
 
-  const users = await pool.query(`SELECT * FROM users`);
-  expect(users.rows).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
+    const users = await pool.query(`SELECT * FROM users`);
+    expect(users.rows).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
 
-  pool.end();
-});
+    await pool.end();
+  });
 
-test("node-postgres driver with transactions", async () => {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
-  const client = await pool.connect();
+  test("tests are not isolated", async () => {
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-  try {
-    await client.query("BEGIN");
-    await client.query(`INSERT INTO users (name) VALUES ('Rebecca Jorden')`);
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
+    const newUser = await pool.query(`
+      INSERT INTO users (name)
+      VALUES ('Rebecca Jorden')
+      RETURNING *
+    `);
+    expect(newUser.rows).toStrictEqual([{ id: 2, name: "Rebecca Jorden" }]);
 
-  const users = await client.query(`SELECT * FROM users`);
-  expect(users.rows).toStrictEqual([
-    // Note the same Neon branch is used for all tests in the same file, clean
-    // it up manually if you want a clean slate for each test.
-    { id: 1, name: "Ellen Ripley" },
-    { id: 2, name: "Rebecca Jorden" },
-  ]);
+    const users = await pool.query(`SELECT * FROM users`);
+    expect(users.rows).toStrictEqual([
+      // Ellen Ripley is already in the table from the previous test
+      { id: 1, name: "Ellen Ripley" },
+      { id: 2, name: "Rebecca Jorden" },
+    ]);
+
+    await pool.end();
+  });
+
+  test("interactive transactions are supported", async () => {
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+    const client = await pool.connect();
+
+    try {
+      await client.query("BEGIN");
+      await client.query(`INSERT INTO users (name) VALUES ('Private Vasquez')`);
+      // Duplicate unique constraint error - will roll back the transaction
+      await client.query(`INSERT INTO users (name) VALUES ('Private Vasquez')`);
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+    } finally {
+      client.release();
+    }
+
+    const users = await client.query(`SELECT * FROM users`);
+    expect(users.rows).toStrictEqual([
+      { id: 1, name: "Ellen Ripley" },
+      { id: 2, name: "Rebecca Jorden" },
+      // Private Vasquez is not inserted because of the transaction rollback
+    ]);
+
+    await pool.end();
+  });
 });

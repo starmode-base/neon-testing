@@ -1,6 +1,8 @@
 /**
  * @neondatabase/serverless
  *
+ * Supports interactive transactions
+ *
  * https://www.npmjs.com/package/@neondatabase/serverless
  */
 import { describe, expect, test } from "vitest";
@@ -48,12 +50,11 @@ describe("Neon serverless driver (websockets)", () => {
       VALUES ('Rebecca Jorden')
       RETURNING *
     `);
-    expect(newUser.rows[0]).toStrictEqual({ id: 2, name: "Rebecca Jorden" });
+    expect(newUser.rows).toStrictEqual([{ id: 2, name: "Rebecca Jorden" }]);
 
     const users = await pool.query(`SELECT * FROM users`);
     expect(users.rows).toStrictEqual([
-      // Note the same Neon branch is used for all tests in the same file, clean
-      // it up manually if you want a clean slate for each test.
+      // Ellen Ripley is already in the table from the previous test
       { id: 1, name: "Ellen Ripley" },
       { id: 2, name: "Rebecca Jorden" },
     ]);
@@ -61,7 +62,7 @@ describe("Neon serverless driver (websockets)", () => {
     await pool.end();
   });
 
-  test("transactions work", async () => {
+  test("interactive transactions are supported", async () => {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
     const client = await pool.connect();
 
@@ -83,5 +84,7 @@ describe("Neon serverless driver (websockets)", () => {
       { id: 2, name: "Rebecca Jorden" },
       // Private Vasquez is not inserted because of the transaction rollback
     ]);
+
+    await pool.end();
   });
 });

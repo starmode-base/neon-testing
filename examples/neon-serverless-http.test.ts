@@ -1,9 +1,11 @@
 /**
  * @neondatabase/serverless
  *
+ * Does not support interactive transactions
+ *
  * https://www.npmjs.com/package/@neondatabase/serverless
  */
-import { expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { withNeonTestBranch } from "./test-helpers";
 import { neon } from "@neondatabase/serverless";
 
@@ -16,44 +18,66 @@ import { neon } from "@neondatabase/serverless";
  */
 withNeonTestBranch();
 
-test("Neon serverless driver (http)", async () => {
-  const sql = neon(process.env.DATABASE_URL!);
+describe("Neon serverless driver (http)", () => {
+  test("create table", async () => {
+    const sql = neon(process.env.DATABASE_URL!);
 
-  await sql`
-    CREATE TABLE users (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL UNIQUE
-    )
-  `;
+    await sql`
+      CREATE TABLE users (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE
+      )
+    `;
 
-  const [newUser] = await sql`
-    INSERT INTO users (name)
-    VALUES ('Ellen Ripley')
-    RETURNING *
-  `;
-  expect(newUser).toStrictEqual({ id: 1, name: "Ellen Ripley" });
+    const newUser = await sql`
+      INSERT INTO users (name)
+      VALUES ('Ellen Ripley')
+      RETURNING *
+    `;
+    expect(newUser).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
 
-  const users = await sql`SELECT * FROM users`;
-  expect(users).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
-});
+    const users = await sql`SELECT * FROM users`;
+    expect(users).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
+  });
 
-test("Neon serverless driver with transactions (http)", async () => {
-  const sql = neon(process.env.DATABASE_URL!);
+  test("tests are not isolated", async () => {
+    const sql = neon(process.env.DATABASE_URL!);
 
-  try {
-    await sql`BEGIN`;
-    await sql`INSERT INTO users (name) VALUES ('Rebecca Jorden')`;
-    await sql`INSERT INTO users (name) VALUES ('Rebecca Jorden')`;
-    await sql`COMMIT`;
-  } catch (error) {
-    await sql`ROLLBACK`;
-  }
+    const newUser = await sql`
+      INSERT INTO users (name)
+      VALUES ('Rebecca Jorden')
+      RETURNING *
+    `;
+    expect(newUser).toStrictEqual([{ id: 2, name: "Rebecca Jorden" }]);
 
-  const users = await sql`SELECT * FROM users`;
-  expect(users).toStrictEqual([
-    // Note the same Neon branch is used for all tests in the same file, clean
-    // it up manually if you want a clean slate for each test.
-    { id: 1, name: "Ellen Ripley" },
-    { id: 2, name: "Rebecca Jorden" }, // Tx didn't roll back
-  ]);
+    const users = await sql`SELECT * FROM users`;
+    expect(users).toStrictEqual([
+      // Ellen Ripley is already in the table from the previous test
+      { id: 1, name: "Ellen Ripley" },
+      { id: 2, name: "Rebecca Jorden" },
+    ]);
+  });
+
+  test("interactive transactions are NOT supported", async () => {
+    const sql = neon(process.env.DATABASE_URL!);
+
+    try {
+      await sql`BEGIN`;
+      await sql`INSERT INTO users (name) VALUES ('Private Vasquez')`;
+      // Duplicate unique constraint error - will fail but not roll back
+      await sql`INSERT INTO users (name) VALUES ('Private Vasquez')`;
+      await sql`COMMIT`;
+    } catch (error) {
+      await sql`ROLLBACK`;
+    }
+
+    const users = await sql`SELECT * FROM users`;
+    expect(users).toStrictEqual([
+      { id: 1, name: "Ellen Ripley" },
+      { id: 2, name: "Rebecca Jorden" },
+      // Private Vasquez is inserted despite the unique constraint error because
+      // interactive transactions are not supported by this driver.
+      { id: 3, name: "Private Vasquez" },
+    ]);
+  });
 });
