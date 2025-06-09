@@ -6,7 +6,7 @@
  * https://www.npmjs.com/package/pg
  */
 import { describe, expect, test } from "vitest";
-import { withNeonTestBranch } from "./test-setup";
+import { withNeonTestBranch } from "../test-setup";
 import { Pool } from "pg";
 
 /**
