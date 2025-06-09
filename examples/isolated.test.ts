@@ -9,6 +9,12 @@ import { neon } from "@neondatabase/serverless";
 
 withNeonTestBranch();
 
+/**
+ * Drop the Postgres schema before each test
+ *
+ * When you drop the schema you have to re-apply the database migrations/schema
+ * before each test
+ */
 describe("isolate tests by dropping schema", () => {
   beforeEach(async () => {
     const sql = neon(process.env.DATABASE_URL!);
@@ -34,6 +40,12 @@ describe("isolate tests by dropping schema", () => {
   });
 });
 
+/**
+ * Drop the table before each test
+ *
+ * When you drop tables you have to re-apply the database migrations/schema
+ * before each test
+ */
 describe("isolate tests by dropping tables", () => {
   beforeEach(async () => {
     const sql = neon(process.env.DATABASE_URL!);
@@ -61,6 +73,12 @@ describe("isolate tests by dropping tables", () => {
   });
 });
 
+/**
+ * Delete table rows before each test
+ *
+ * When you delete rows, the tables themselves are intact so there is no need to
+ * re-apply the database migrations/schema
+ */
 describe("isolate tests by deleting rows", () => {
   beforeEach(async () => {
     const sql = neon(process.env.DATABASE_URL!);
@@ -86,7 +104,13 @@ describe("isolate tests by deleting rows", () => {
   });
 });
 
-describe("isolate tests by truncating table", () => {
+/**
+ * Truncate tables before each test
+ *
+ * When you truncate tables, the tables themselves are intact so there is no
+ * need to re-apply the database migrations/schema
+ */
+describe("isolate tests by truncating tables", () => {
   beforeEach(async () => {
     const sql = neon(process.env.DATABASE_URL!);
     await sql`CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name TEXT)`;

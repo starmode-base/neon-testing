@@ -11,7 +11,7 @@ import { neon } from "@neondatabase/serverless";
 
 const endpoints = ["pooler", "direct"] as const;
 
-describe.each(endpoints)("Neon serverless (http - %s)", (endpoint) => {
+describe.each(endpoints)("Neon serverless http (%s)", (endpoint) => {
   withNeonTestBranch({ endpoint });
 
   test("create table", async () => {
