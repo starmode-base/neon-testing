@@ -1,66 +1,112 @@
 /**
- * @neondatabase/serverless
+ * To isolate tests within a file, reset the Neon branch before each test
  *
- * Does not support interactive transactions
- *
- * https://www.npmjs.com/package/@neondatabase/serverless
+ * This file contains a few ways to isolate tests within a file
  */
-import { beforeEach, expect, test } from "vitest";
+import { describe, beforeEach, expect, test } from "vitest";
 import { withNeonTestBranch } from "./test-setup";
 import { neon } from "@neondatabase/serverless";
 
-/**
- * Enable Neon database testing environment
- *
- * - Creates an isolated Neon branch for each test file
- * - Tests within a file are not isolated, they share the same branch instance
- * - The branch is deleted when all tests in the file have completed
- */
 withNeonTestBranch();
 
-/**
- * To isolate tests within a file, reset the Neon branch before each test
- */
-beforeEach(async () => {
-  const sql = neon(process.env.DATABASE_URL!);
+describe("isolate tests by dropping schema", () => {
+  beforeEach(async () => {
+    const sql = neon(process.env.DATABASE_URL!);
+    await sql`DROP SCHEMA IF EXISTS public CASCADE`;
+    await sql`CREATE SCHEMA public`;
+    await sql`CREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT)`;
+  });
 
-  await sql`DROP SCHEMA IF EXISTS public CASCADE`;
-  await sql`CREATE SCHEMA public`;
+  /**
+   * This test is run twice and would fail if the database is shared between
+   * tests
+   */
+  test.each([0, 1])("individual tests are isolated - %s", async () => {
+    const sql = neon(process.env.DATABASE_URL!);
 
-  await sql`
-    CREATE TABLE users (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL
-    )
-  `;
+    expect(await sql`SELECT * FROM users`).toStrictEqual([]);
 
-  await sql`DELETE FROM users`;
+    await sql`INSERT INTO users (name) VALUES ('Ellen Ripley')`;
+
+    expect(await sql`SELECT * FROM users`).toStrictEqual([
+      { id: 1, name: "Ellen Ripley" },
+    ]);
+  });
 });
 
-test("Neon serverless driver", async () => {
-  const sql = neon(process.env.DATABASE_URL!);
+describe("isolate tests by dropping tables", () => {
+  beforeEach(async () => {
+    const sql = neon(process.env.DATABASE_URL!);
 
-  const [newUser] = await sql`
-    INSERT INTO users (name)
-    VALUES ('Ellen Ripley')
-    RETURNING *
-  `;
-  expect(newUser).toStrictEqual({ id: 1, name: "Ellen Ripley" });
+    await sql`DROP TABLE IF EXISTS users`;
+    await sql`CREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT)`;
 
-  const users = await sql`SELECT * FROM users`;
-  expect(users).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
+    await sql`DELETE FROM users`;
+  });
+
+  /**
+   * This test is run twice and would fail if the database is shared between
+   * tests
+   */
+  test.each([0, 1])("individual tests are isolated - %s", async () => {
+    const sql = neon(process.env.DATABASE_URL!);
+
+    expect(await sql`SELECT * FROM users`).toStrictEqual([]);
+
+    await sql`INSERT INTO users (name) VALUES ('Ellen Ripley')`;
+
+    expect(await sql`SELECT * FROM users`).toStrictEqual([
+      { id: 1, name: "Ellen Ripley" },
+    ]);
+  });
 });
 
-test("Neon serverless driver with transaction", async () => {
-  const sql = neon(process.env.DATABASE_URL!);
+describe("isolate tests by deleting rows", () => {
+  beforeEach(async () => {
+    const sql = neon(process.env.DATABASE_URL!);
+    await sql`CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name TEXT)`;
+    await sql`DELETE FROM users`;
+    await sql`ALTER SEQUENCE users_id_seq RESTART WITH 1`;
+  });
 
-  await sql.transaction((tx) => [
-    tx`
-      INSERT INTO users (name)
-      VALUES ('Rebecca Jorden')
-    `,
-  ]);
+  /**
+   * This test is run twice and would fail if the database is shared between
+   * tests
+   */
+  test.each([0, 1])("individual tests are isolated - %s", async () => {
+    const sql = neon(process.env.DATABASE_URL!);
 
-  const users = await sql`SELECT * FROM users`;
-  expect(users).toStrictEqual([{ id: 1, name: "Rebecca Jorden" }]);
+    expect(await sql`SELECT * FROM users`).toStrictEqual([]);
+
+    await sql`INSERT INTO users (name) VALUES ('Ellen Ripley')`;
+
+    expect(await sql`SELECT * FROM users`).toStrictEqual([
+      { id: 1, name: "Ellen Ripley" },
+    ]);
+  });
+});
+
+describe("isolate tests by truncating table", () => {
+  beforeEach(async () => {
+    const sql = neon(process.env.DATABASE_URL!);
+    await sql`CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name TEXT)`;
+    await sql`TRUNCATE TABLE users`;
+    await sql`ALTER SEQUENCE users_id_seq RESTART WITH 1`;
+  });
+
+  /**
+   * This test is run twice and would fail if the database is shared between
+   * tests
+   */
+  test.each([0, 1])("individual tests are isolated - %s", async () => {
+    const sql = neon(process.env.DATABASE_URL!);
+
+    expect(await sql`SELECT * FROM users`).toStrictEqual([]);
+
+    await sql`INSERT INTO users (name) VALUES ('Ellen Ripley')`;
+
+    expect(await sql`SELECT * FROM users`).toStrictEqual([
+      { id: 1, name: "Ellen Ripley" },
+    ]);
+  });
 });
