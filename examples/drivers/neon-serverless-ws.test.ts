@@ -9,16 +9,11 @@ import { describe, expect, test } from "vitest";
 import { withNeonTestBranch } from "../test-setup";
 import { Pool } from "@neondatabase/serverless";
 
-/**
- * Enable Neon database testing environment
- *
- * - Creates an isolated Neon branch for each test file
- * - Tests within a file are not isolated, they share the same branch instance
- * - The branch is deleted when all tests in the file have completed
- */
-withNeonTestBranch();
+const endpoints = ["pooler", "direct"] as const;
 
-describe("Neon serverless driver (websockets)", () => {
+describe.each(endpoints)("Neon serverless (websockets - %s)", (endpoint) => {
+  withNeonTestBranch({ endpoint });
+
   test("create table", async () => {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 

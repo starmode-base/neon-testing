@@ -9,16 +9,11 @@ import { describe, expect, test } from "vitest";
 import { withNeonTestBranch } from "../test-setup";
 import postgres from "postgres";
 
-/**
- * Enable Neon database testing environment
- *
- * - Creates an isolated Neon branch for each test file
- * - Tests within a file are not isolated, they share the same branch instance
- * - The branch is deleted when all tests in the file have completed
- */
-withNeonTestBranch();
+const endpoints = ["pooler", "direct"] as const;
 
-describe("Postgres.js driver", () => {
+describe.each(endpoints)("Postgres.js driver (%s)", (endpoint) => {
+  withNeonTestBranch({ endpoint });
+
   test("create table", async () => {
     const sql = postgres(process.env.DATABASE_URL!);
 
