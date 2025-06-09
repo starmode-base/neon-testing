@@ -25,8 +25,8 @@
     "@neondatabase/api-client": "^2.0.0"
   },
   "peerDependencies": {
-    "typescript": "^5",
-    "vitest": "^3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.2"
   },
   "devDependencies": {
     "@neondatabase/serverless": "^1.0.1",
