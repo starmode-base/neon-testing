@@ -6,7 +6,7 @@
  * https://www.npmjs.com/package/@neondatabase/serverless
  */
 import { describe, expect, test } from "vitest";
-import { withNeonTestBranch } from "./test-helpers";
+import { withNeonTestBranch } from "./test-setup";
 import { Pool } from "@neondatabase/serverless";
 
 /**

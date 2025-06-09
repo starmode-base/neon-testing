@@ -1,7 +1,7 @@
 {
   "name": "neon-testing",
   "version": "1.0.0",
-  "description": "A Vitest utility for running database tests with isolated Neon branches",
+  "description": "A Vitest utility for automated integration tests with Neon",
   "keywords": [
     "neon",
     "postgres",

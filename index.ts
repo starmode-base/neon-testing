@@ -140,8 +140,6 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     afterAll(async () => {
       await deleteBranch();
       process.env.DATABASE_URL = undefined;
-
-      // await deleteAllTestBranches();
     });
   };
 
