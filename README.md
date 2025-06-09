@@ -1,10 +1,14 @@
 # Neon testing
 
-A Vitest utility for running database tests with isolated [Neon](https://neon.com/) branches. Each test file gets its own dedicated PostgreSQL database (Neon branch), ensuring clean, parallel, and reproducible tests.
+A Vitest utility for automated integration tests with [Neon](https://neon.com/).
+
+Each test file runs against its own isolated PostgreSQL database (Neon branch), ensuring clean, parallel, and reproducible testing of code that relies on a database. Because it uses a real database, you can test code logic that depends on database features such as transaction rollbacks, unique constraints, and more.
+
+Using an actual clone of your production database for integration testing lets you verify functionality that mocks cannot.
 
 ## Features
 
-- 🔄 **Isolated test environments** - Each test file runs against its own Neon branch
+- 🔄 **Isolated test environments** - Each test file runs against its own Postgres database with your actual schema and constraints
 - 🧹 **Automatic cleanup** - Neon test branches are created and destroyed automatically
 - 🛡️ **TypeScript native** - No JavaScript support
 - 🎯 **ESM only** - No CommonJS support
