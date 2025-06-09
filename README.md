@@ -128,22 +128,20 @@ Tests within a single test file share the same database instance (Neon branch), 
 
 This works because Vitest runs test files in parallel, but tests within each test file run one at a time.
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## Contributing
 
 Contributions are welcome! Please open issues or pull requests on [GitHub](https://github.com/starmode-base/neon-testing/pulls).
 
-## Support
+## License
 
-For questions or support, open an issue on [GitHub](https://github.com/starmode-base/neon-testing/issues).
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Commercial support
+If you find this project helpful, consider giving it a ⭐️ on [GitHub](https://github.com/starmode-base/neon-testing)
 
-Need professional help with database testing, AI integration, or modern web development?
+## Need expert help?
 
-**[STΛR MODΞ](https://www.starmode.dev/)** - I run this AI development studio with data scientist and ML/AI expert Spencer Smith. We specialize in building AI-first applications, advanced AI workflows, and agentic networks. We help companies build reliable AI solutions.
+I take on a few consulting projects each year where I can build, unblock, and ship.
 
-**[Mikael Lirbank](https://www.lirbank.com/)** - My individual consulting practice for web application development, test automation, code quality, and technical architecture.
+[STΛR MODΞ](https://www.starmode.dev/) — The AI development studio I run with AI/ML expert and data scientist Spencer Smith. We help companies build accurate AI solutions: AI-first apps, advanced workflows, and agentic systems.
+
+[Mikael Lirbank](https://www.lirbank.com/) — My solo practice, focused on web app development, test automation, code quality, and technical architecture. I'm around, friendly, and happy to help with the hard stuff.
