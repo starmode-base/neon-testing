@@ -17,9 +17,7 @@
   "module": "index.ts",
   "type": "module",
   "files": [
-    "index.ts",
-    "README.md",
-    "LICENSE"
+    "index.ts"
   ],
   "scripts": {
     "test": "vitest",
