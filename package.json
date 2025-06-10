@@ -16,10 +16,17 @@
   "bugs": "https://github.com/starmode-base/neon-testing/issues",
   "module": "index.ts",
   "type": "module",
+  "files": [
+    "index.ts",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "test": "vitest",
     "format": "prettier --write .",
-    "release": "bun publish && git tag v$(bun -p \"require('./package.json').version\") && git push --tags"
+    "release": "bun publish",
+    "prepublishOnly": "git diff-index --quiet HEAD || (echo 'Error: You have uncommitted changes' && exit 1)",
+    "postpublish": "git tag v$(bun -p \"require('./package.json').version\") && git push --tags"
   },
   "dependencies": {
     "@neondatabase/api-client": "^2.0.0"
@@ -34,10 +41,5 @@
     "pg": "^8.16.0",
     "postgres": "^3.4.7",
     "prettier": "^3.5.3"
-  },
-  "files": [
-    "index.ts",
-    "README.md",
-    "LICENSE"
-  ]
+  }
 }
