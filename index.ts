@@ -17,7 +17,7 @@ import { afterAll, beforeAll } from "vitest";
  */
 function createConnectionUri(
   connectionParameters: ConnectionDetails,
-  type: "pooler" | "direct"
+  type: "pooler" | "direct",
 ) {
   const { role, password, host, pooler_host, database } =
     connectionParameters.connection_parameters;
@@ -77,7 +77,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       if (isTestBranch) {
         await apiClient.deleteProjectBranch(
           factoryOptions.projectId,
-          branch.id
+          branch.id,
         );
       }
     }
@@ -85,7 +85,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
 
   const testDbSetup = (
     /** Override any factory options except apiKey */
-    overrides?: NeonTestingOverrides
+    overrides?: NeonTestingOverrides,
   ) => {
     // Merge factory options with overrides
     const options = { ...factoryOptions, ...overrides };
