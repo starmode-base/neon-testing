@@ -3,9 +3,9 @@
     "target": "ESNext",
     "module": "Preserve",
     "moduleResolution": "bundler",
-    "noEmit": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noEmit": true
   }
 }
