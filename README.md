@@ -29,7 +29,7 @@ Using an actual clone of your production database for integration testing lets y
 
 ### Install
 
-```bash
+```sh
 bun add -d neon-testing
 ```
 
@@ -138,8 +138,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Need expert help?
 
-I take on a few consulting projects each year where I can build, unblock, and ship.
+Hi, I'm [@lirbank](https://github.com/lirbank). I take on a few consulting projects each year where I help companies build, unblock, and ship. Here's what I do:
 
-**[STΛR MODΞ](https://www.starmode.dev/)** — The AI development studio I run with AI/ML expert and data scientist Spencer Smith. We help companies build accurate AI solutions: AI-first apps, advanced workflows, and agentic systems.
+**[STΛR MODΞ](https://www.starmode.dev/)** — A boutique AI development studio I run with AI/ML expert and data scientist [@spencer-g-smith](https://github.com/spencer-g-smith). We help companies build accurate AI solutions: AI-first apps, advanced workflows, and agentic systems.
 
-**[Mikael Lirbank](https://www.lirbank.com/)** — My solo practice, focused on web app development, test automation, code quality, and technical architecture. I'm around, friendly, and happy to help with the hard stuff.
+**[Mikael Lirbank](https://www.lirbank.com/)** — My solo practice, focused on web app development, test automation, code quality, and technical architecture. I'm friendly and happy to help with the hard stuff.

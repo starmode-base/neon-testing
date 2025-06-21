@@ -1,14 +1,11 @@
 import { defineConfig } from "vitest/config";
 import dotenv from "dotenv";
-import fs from "node:fs";
 
-const env = dotenv.parse(fs.readFileSync(".env", "utf8"));
+dotenv.config();
 
-export default defineConfig({
-  test: {
-    env: {
-      NEON_API_KEY: env.NEON_API_KEY,
-      NEON_PROJECT_ID: env.NEON_PROJECT_ID,
-    },
-  },
-});
+// This is a precaution to ensure that any production database URL is not used
+// in tests. The DATABASE_URL environment variable will be dynamically set by
+// `makeNeonTesting()()` in the test environment.
+delete process.env.DATABASE_URL;
+
+export default defineConfig({});
