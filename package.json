@@ -1,6 +1,6 @@
 {
   "name": "neon-testing",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A Vitest utility for automated integration tests with Neon",
   "keywords": [
     "neon",
