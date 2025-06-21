@@ -23,7 +23,7 @@
     "test": "vitest",
     "format": "prettier --write .",
     "release": "bun publish",
-    "prepublishOnly": "git diff-index --quiet HEAD || (echo 'Error: You have uncommitted changes' && exit 1) && rm -rf dist && tsc",
+    "prepublishOnly": "git diff-index --quiet HEAD || (echo 'Error: You have uncommitted changes' && exit 1) && tsc",
     "postpublish": "git tag v$(bun -p \"require('./package.json').version\") && git push --tags"
   },
   "dependencies": {
