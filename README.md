@@ -24,8 +24,8 @@ Using an actual clone of your production database for integration testing lets y
 
 ### Prerequisites
 
-- A [Neon project](https://console.neon.tech/app/projects) with a database
-- A [Neon API key](https://neon.tech/docs/manage/api-keys) for programmatic access
+- A [Neon project](https://console.neon.com/app/projects) with a database
+- A [Neon API key](https://neon.com/docs/manage/api-keys) for programmatic access
 
 ### Install
 
@@ -131,6 +131,25 @@ This works because Vitest runs test files in parallel, but tests within each tes
 ## Contributing
 
 Contributions are welcome! Please open issues or pull requests on [GitHub](https://github.com/starmode-base/neon-testing/pulls).
+
+### Environment
+
+To run tests locally, create an `.env` file in the project root with these keys:
+
+- `NEON_API_KEY="***"`
+- `NEON_PROJECT_ID="***"`
+
+Create a free Neon project at [neon.com](https://neon.com/) to test with.
+
+### Release
+
+To make a new release, run:
+
+```sh
+bun run release
+```
+
+The command will abort if there are uncommitted changes in the working tree, or if the `version` in [package.json](package.json) has not been incremented.
 
 ## License
 
