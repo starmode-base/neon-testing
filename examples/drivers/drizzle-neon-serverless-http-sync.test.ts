@@ -1,20 +1,23 @@
 /**
- * @neondatabase/serverless
+ * drizzle-orm/neon-http
  *
  * Does not support interactive transactions
  *
- * https://www.npmjs.com/package/@neondatabase/serverless
+ * https://www.npmjs.com/package/drizzle-orm
+ * https://orm.drizzle.team/docs/get-started/neon-new
+ * https://orm.drizzle.team/docs/connect-neon
  */
 import { describe, expect, test } from "vitest";
 import { withNeonTestBranch } from "../test-setup";
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
 import { lazySingleton } from "../../singleton";
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from "@neondatabase/serverless";
 
 const endpoints = ["pooler", "direct"] as const;
 
 describe.each(endpoints)("Drizzle Neon serverless http (%s)", (endpoint) => {
   withNeonTestBranch({ endpoint });
+
   const db = lazySingleton(() =>
     drizzle({ client: neon(process.env.DATABASE_URL!) }),
   );
