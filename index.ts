@@ -49,7 +49,7 @@ export type NeonTestingOverrides = Omit<Partial<NeonTestingOptions>, "apiKey">;
  *
  * @param apiKey - The Neon API key
  * @param projectId - The Neon project ID
- * @param endpoint - The type of connection to create (pooler or direct)
+ * @param endpoint - The type of connection to create (pooler or direct, default: pooler)
  * @param parentBranchId - The parent branch ID for the new branch
  * @param schemaOnly - Whether to create a schema-only branch
  * @returns A setup/teardown function for Vitest test suites
