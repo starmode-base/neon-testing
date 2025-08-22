@@ -9,8 +9,8 @@
  */
 import { describe, expect, test } from "vitest";
 import { withNeonTestBranch } from "../test-setup";
-import { lazySingleton } from "../../singleton";
 import { drizzle } from "drizzle-orm/neon-http";
+import { lazySingleton } from "../../singleton";
 
 const endpoints = ["pooler", "direct"] as const;
 
