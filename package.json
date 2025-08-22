@@ -30,7 +30,6 @@
     "@neondatabase/api-client": "^2.2.0"
   },
   "peerDependencies": {
-    "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },
   "devDependencies": {
@@ -38,6 +37,8 @@
     "dotenv": "^17.2.1",
     "pg": "^8.16.3",
     "postgres": "^3.4.7",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   }
 }
