@@ -17,7 +17,7 @@ withNeonTestBranch({
 });
 
 // TODO: This does not work unless we disable the deleteBranch
-// https://github.com/starmode-base/neon-testing/blob/bff84530ee75d0390d1497b190efdcff403cfdef/index.ts#L141-L142
+// https://github.com/starmode-base/neon-testing/blob/25712933772ee923ceaa7b4462c8b1b3288c0703/index.ts#L141
 test.skip("query", async () => {
   const db = drizzle(process.env.DATABASE_URL!);
   await db.execute(`SELECT 1`);
