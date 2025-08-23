@@ -40,11 +40,18 @@ export interface NeonTestingOptions {
    * https://console.neon.tech/app/projects
    */
   projectId: string;
-  /** The parent branch ID for the new branch */
+  /**
+   * The parent branch ID for the new branch. If omitted or empty, the branch
+   * will be created from the project's default branch.
+   */
   parentBranchId?: string;
-  /** Whether to create a schema-only branch (default: false) */
+  /**
+   * Whether to create a schema-only branch (default: false)
+   */
   schemaOnly?: boolean;
-  /** The type of connection to create (pooler is recommended) */
+  /**
+   * The type of connection to create (pooler is recommended)
+   */
   endpoint?: "pooler" | "direct";
   /**
    * Delete the test branch in afterAll (default: true)
@@ -62,11 +69,12 @@ export type NeonTestingOverrides = Omit<Partial<NeonTestingOptions>, "apiKey">;
  * Factory function that creates a Neon test database setup/teardown function
  * for Vitest test suites.
  *
- * @param apiKey - The Neon API key
- * @param projectId - The Neon project ID
- * @param endpoint - The type of connection to create (pooler or direct, default: pooler)
- * @param parentBranchId - The parent branch ID for the new branch
- * @param schemaOnly - Whether to create a schema-only branch
+ * @param apiKey - The Neon API key, this is used to create and teardown test branches
+ * @param projectId - The Neon project ID to operate on
+ * @param parentBranchId - The parent branch ID for the new branch. If omitted or empty, the branch will be created from the project's default branch.
+ * @param schemaOnly - Whether to create a schema-only branch (default: false)
+ * @param endpoint - The type of connection to create (pooler is recommended)
+ * @param deleteBranch - Delete the test branch in afterAll (default: true). Disabling this will leave each test branch in the Neon project after the test suite runs
  * @returns A setup/teardown function for Vitest test suites
  *
  * Side effects:

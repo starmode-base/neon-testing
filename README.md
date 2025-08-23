@@ -74,7 +74,7 @@ export const withNeonTestBranch = makeNeonTesting({
 });
 ```
 
-See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L30-L41).
+See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L30-L63).
 
 #### 2. Enable database testing
 
@@ -104,7 +104,7 @@ test("database operations", async () => {
 
 #### Override configuration
 
-Branch from a specific branch instead of main:
+Branch from a specific branch instead of the default branch:
 
 ```typescript
 import { withNeonTestBranch } from "./test-setup";
@@ -120,7 +120,7 @@ import { withNeonTestBranch } from "./test-setup";
 withNeonTestBranch({ schemaOnly: true });
 ```
 
-See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L30-L41).
+See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L30-L63).
 
 ## Isolate individual tests
 
