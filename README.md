@@ -1,5 +1,7 @@
 # Neon testing
 
+[![Integration tests](https://github.com/starmode-base/neon-testing/actions/workflows/test.yml/badge.svg)](https://github.com/starmode-base/neon-testing/actions/workflows/test.yml)
+
 A Vitest utility for automated integration tests with [Neon](https://neon.com/).
 
 Each test file runs against its own isolated PostgreSQL database (Neon branch), ensuring clean, parallel, and reproducible testing of code that relies on a database. Because it uses a real database, you can test code logic that depends on database features such as transaction rollbacks, unique constraints, and more.
@@ -10,6 +12,7 @@ Using an actual clone of your production database for integration testing lets y
 
 - 🔄 **Isolated test environments** - Each test file runs against its own Postgres database with your actual schema and constraints
 - 🧹 **Automatic cleanup** - Neon test branches are created and destroyed automatically
+- 🐛 **Debug friendly** - Option to preserve test branches for debugging failed tests
 - 🛡️ **TypeScript native** - No JavaScript support
 - 🎯 **ESM only** - No CommonJS support
 
@@ -19,6 +22,14 @@ Using an actual clone of your production database for integration testing lets y
 1. **Environment setup**: `DATABASE_URL` is set to point to your test branch
 1. **Test execution**: Your tests run against the isolated database
 1. **Cleanup**: After tests complete, the branch is automatically deleted
+
+### Test isolation
+
+Tests within a test file share the same database instance (Neon branch), so while all test files are isolated, tests within a test file are intentionally not.
+
+This works because Vitest runs test files in parallel, but tests within each test file run sequentially one at a time.
+
+If you prefer individual tests within a test file to be isolated, [simply clean up the database in a beforeEach lifecycle](examples/isolated.test.ts).
 
 ## Quick start
 
@@ -74,8 +85,6 @@ export const withNeonTestBranch = makeNeonTesting({
 });
 ```
 
-See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L30-L41).
-
 #### 2. Enable database testing
 
 Then call the exported test lifecycle function in the test files where you need database access.
@@ -102,9 +111,37 @@ test("database operations", async () => {
 });
 ```
 
-#### Override configuration
+## Driver examples
 
-Branch from a specific branch instead of main:
+The [examples/drivers/](examples/drivers/) directory contains examples for different database drivers and ORMs, including HTTP, WebSocket, and TCP protocols with various libraries like `@neondatabase/serverless`, `pg`, `postgres`, and Drizzle ORM.
+
+Each example demonstrates connection management, transaction support, and test isolation patterns.
+
+## Configuration
+
+You configure neon-testing in two places:
+
+- **Base settings** in `makeNeonTesting()`
+- **Optional overrides** in `withNeonTestBranch()`
+
+See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L32-L65).
+
+### Base configuration
+
+Configure the base settings in `makeNeonTesting()`:
+
+```typescript
+import { makeNeonTesting } from "neon-testing";
+
+export const withNeonTestBranch = makeNeonTesting({
+  apiKey: "apiKey",
+  projectId: "projectId",
+});
+```
+
+### Override configuration
+
+Override the base configuration in specific test files with `withNeonTestBranch()`:
 
 ```typescript
 import { withNeonTestBranch } from "./test-setup";
@@ -112,21 +149,37 @@ import { withNeonTestBranch } from "./test-setup";
 withNeonTestBranch({ parentBranchId: "br-staging-123" });
 ```
 
-Don't copy data when branching:
+## Utilities
+
+### deleteAllTestBranches()
+
+The `deleteAllTestBranches()` function is a utility that deletes all test branches from your Neon project. This is useful for cleanup when tests fail unexpectedly and leave orphaned test branches.
 
 ```typescript
 import { withNeonTestBranch } from "./test-setup";
 
-withNeonTestBranch({ schemaOnly: true });
+// Access the cleanup utility
+await withNeonTestBranch.deleteAllTestBranches();
 ```
 
-See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L30-L41).
+The function identifies test branches by looking for the `integration-test: true` annotation that neon-testing automatically adds to all test branches it creates.
 
-## Isolate individual tests
+### lazySingleton()
 
-Tests within a single test file share the same database instance (Neon branch), so while all test files are isolated, tests within a test file are not. If you prefer individual tests within a test file to be isolated, [simply clean up the database in a beforeEach lifecycle](examples/neon-serverless-http-isolated.test.ts).
+The `lazySingleton()` function creates a lazy singleton from a factory function. This is useful for managing database connections efficiently:
 
-This works because Vitest runs test files in parallel, but tests within each test file run one at a time.
+```typescript
+import { lazySingleton } from "neon-testing";
+import { neon } from "@neondatabase/serverless";
+
+const sql = lazySingleton(() => neon(process.env.DATABASE_URL!));
+
+// The connection is only created when first called
+test("database operations", async () => {
+  const users = await sql()`SELECT * FROM users`;
+  // ...
+});
+```
 
 ## Contributing
 
