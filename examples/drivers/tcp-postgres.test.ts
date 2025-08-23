@@ -18,6 +18,7 @@ const endpoints = ["pooler", "direct"] as const;
 
 describe.each(endpoints)("Postgres.js (%s)", (endpoint) => {
   withNeonTestBranch({ endpoint });
+
   const sql = lazySingleton(() => postgres(process.env.DATABASE_URL!));
 
   test("create table", async () => {
