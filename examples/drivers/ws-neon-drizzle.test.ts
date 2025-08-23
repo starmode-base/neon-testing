@@ -18,7 +18,7 @@ import { drizzle } from "drizzle-orm/neon-serverless";
 const endpoints = ["pooler", "direct"] as const;
 
 describe.each(endpoints)("Neon serverless websockets (%s)", (endpoint) => {
-  withNeonTestBranch({ endpoint });
+  withNeonTestBranch({ endpoint, deleteBranch: true });
 
   test("create table", async () => {
     const db = drizzle(process.env.DATABASE_URL!);
@@ -40,6 +40,7 @@ describe.each(endpoints)("Neon serverless websockets (%s)", (endpoint) => {
     const users = await db.execute(`SELECT * FROM users`);
     expect(users.rows).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
 
+    // 👎 Have to manually end the connection unless disabling `deleteBranch`
     await db.$client.end();
   });
 
@@ -60,12 +61,12 @@ describe.each(endpoints)("Neon serverless websockets (%s)", (endpoint) => {
       { id: 2, name: "Rebecca Jorden" },
     ]);
 
+    // 👎 Have to manually end the connection unless disabling `deleteBranch`
     await db.$client.end();
   });
 
   test("interactive transactions are supported", async () => {
     const db = drizzle(process.env.DATABASE_URL!);
-    const client = await db.$client.connect();
 
     try {
       await db.execute("BEGIN");
@@ -75,8 +76,6 @@ describe.each(endpoints)("Neon serverless websockets (%s)", (endpoint) => {
       await db.execute("COMMIT");
     } catch {
       await db.execute("ROLLBACK");
-    } finally {
-      client.release();
     }
 
     const users = await db.execute(`SELECT * FROM users`);
@@ -86,6 +85,7 @@ describe.each(endpoints)("Neon serverless websockets (%s)", (endpoint) => {
       // Private Vasquez is not inserted because of the transaction rollback
     ]);
 
+    // 👎 Have to manually end the connection unless disabling `deleteBranch`
     await db.$client.end();
   });
 });
