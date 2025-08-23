@@ -125,7 +125,7 @@ See all available options in [NeonTestingOptions](https://github.com/starmode-ba
 
 ### Base configuration
 
-Configure the test lifecycle function in `makeNeonTesting()`:
+Configure the base settings in `makeNeonTesting()`:
 
 ```typescript
 import { makeNeonTesting } from "neon-testing";
@@ -138,7 +138,7 @@ export const withNeonTestBranch = makeNeonTesting({
 
 ### Override configuration
 
-Override the base configuration as needed in individual test files:
+Override the base configuration in specific test files with `withNeonTestBranch()`:
 
 ```typescript
 import { withNeonTestBranch } from "./test-setup";
