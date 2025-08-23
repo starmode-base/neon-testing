@@ -122,7 +122,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     const neonSockets = new Set<WebSocket>();
 
     // Custom WebSocket constructor that tracks Neon WebSocket connections
-    const TrackingWebSocket = class extends WebSocket {
+    class TrackingWebSocket extends WebSocket {
       constructor(url: string) {
         super(url);
 
@@ -131,7 +131,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
 
         neonSockets.add(this);
       }
-    };
+    }
 
     /**
      * Create a new test branch
