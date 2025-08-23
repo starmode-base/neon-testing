@@ -28,9 +28,17 @@ function createConnectionUri(
 }
 
 export interface NeonTestingOptions {
-  /** The Neon API key, this is used to create and teardown test branches */
+  /**
+   * The Neon API key, this is used to create and teardown test branches
+   *
+   * https://neon.com/docs/manage/api-keys#creating-api-keys
+   */
   apiKey: string;
-  /** The Neon project ID to operate on */
+  /**
+   * The Neon project ID to operate on
+   *
+   * https://console.neon.com/app/projects
+   */
   projectId: string;
   /** The parent branch ID for the new branch */
   parentBranchId?: string;
@@ -38,6 +46,8 @@ export interface NeonTestingOptions {
   schemaOnly?: boolean;
   /** The type of connection to create (pooler is recommended) */
   endpoint?: "pooler" | "direct";
+  /** Delete the test branch in afterAll (default: true) */
+  deleteBranch?: boolean;
 }
 
 /** Options for overriding test database setup (excludes apiKey) */
@@ -138,7 +148,9 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     });
 
     afterAll(async () => {
-      await deleteBranch();
+      if (options.deleteBranch !== false) {
+        await deleteBranch();
+      }
       process.env.DATABASE_URL = undefined;
     });
   };
