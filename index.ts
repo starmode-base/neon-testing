@@ -7,10 +7,7 @@ import {
   type ConnectionDetails,
 } from "@neondatabase/api-client";
 import { afterAll, beforeAll } from "vitest";
-import {
-  neonConfig,
-  type WebSocketConstructor,
-} from "@neondatabase/serverless";
+import { neonConfig } from "@neondatabase/serverless";
 
 /**
  * Creates a PostgreSQL connection URI from connection parameters
@@ -121,33 +118,19 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     // Each test file gets its own branch ID and database client
     let branchId: string | undefined;
 
-    // Scoped handlers to temporarily suppress Neon WS close errors
-    let neonWsErrorHandler: ((error: Error) => void) | undefined;
+    // List of tracked Neon WebSocket connections
+    const neonSockets = new Set<WebSocket>();
 
-    // WebSocket tracking to gracefully close Neon sockets before deletion
-    const trackedNeonSockets = new Set<WebSocket>();
-
+    // Custom WebSocket constructor that tracks Neon WebSocket connections
     const TrackingWebSocket = class extends WebSocket {
       constructor(url: string) {
         super(url);
 
-        if (!url.includes(".neon.tech/")) {
-          return;
-        }
+        // Only track Neon WebSocket connections
+        if (!url.includes(".neon.tech/")) return;
 
-        trackedNeonSockets.add(this);
-
-        this.addEventListener("close", () => trackedNeonSockets.delete(this), {
-          once: true,
-        });
+        neonSockets.add(this);
       }
-    };
-
-    const closeTrackedNeonWebSockets = async () => {
-      const sockets = Array.from(trackedNeonSockets);
-      trackedNeonSockets.clear();
-
-      sockets.forEach((ws) => ws.close());
     };
 
     /**
@@ -197,44 +180,23 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
         // Install a custom WebSocket constructor that tracks Neon WebSocket
         // connections and closes them before deleting the branch
         neonConfig.webSocketConstructor = TrackingWebSocket;
-
-        // Suppress the specific Neon WS "Connection terminated unexpectedly"
-        // error that may surface when deleting a branch with open websocket
-        // connections
-        neonWsErrorHandler = (err) => {
-          const isNeonWsClose =
-            err.message.includes("Connection terminated unexpectedly") &&
-            err.stack?.includes("@neondatabase/serverless");
-
-          if (isNeonWsClose) {
-            // Swallow only this specific Neon WS termination error
-            return;
-          }
-
-          // For any other error, detach and rethrow
-          if (neonWsErrorHandler) {
-            process.removeListener("uncaughtException", neonWsErrorHandler);
-          }
-          throw err;
-        };
-
-        process.prependListener("uncaughtException", neonWsErrorHandler);
       }
     });
 
     afterAll(async () => {
+      process.env.DATABASE_URL = undefined;
+
+      // Close all tracked Neon WebSocket connections before deleting the branch
       if (options.autoCloseWebSockets) {
-        await closeTrackedNeonWebSockets();
+        // Suppress Neon WebSocket "Connection terminated unexpectedly" error
+        process.prependListener("uncaughtException", neonWsErrorHandler);
+
+        // Close tracked Neon WebSocket connections before deleting the branch
+        neonSockets.forEach((ws) => ws.close());
       }
 
       if (options.deleteBranch !== false) {
         await deleteBranch();
-      }
-      process.env.DATABASE_URL = undefined;
-
-      if (neonWsErrorHandler) {
-        process.removeListener("uncaughtException", neonWsErrorHandler);
-        neonWsErrorHandler = undefined;
       }
     });
   };
@@ -244,3 +206,17 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
 
   return testDbSetup;
 }
+
+const neonWsErrorHandler = (error: Error) => {
+  const isNeonWsClose =
+    error.message.includes("Connection terminated unexpectedly") &&
+    error.stack?.includes("@neondatabase/serverless");
+
+  if (isNeonWsClose) {
+    // Swallow this specific Neon WS termination error
+    return;
+  }
+
+  // For any other error, detach and rethrow
+  throw error;
+};
