@@ -1,12 +1,13 @@
 /**
- * drizzle-orm/neon-serverless
+ * @neondatabase/serverless
  *
  * Protocol:                                  | WebSocket
- * Driver:                                    | drizzle-orm/neon-serverless
+ * Driver:                                    | @neondatabase/serverless
  * ORM:                                       | drizzle-orm
  * Interactive transactions                   | ✅
  * Automatic connection lifecycle management  | ❌
  *
+ * https://www.npmjs.com/package/@neondatabase/serverless
  * https://www.npmjs.com/package/drizzle-orm
  * https://orm.drizzle.team/docs/get-started/neon-new
  * https://orm.drizzle.team/docs/connect-neon
@@ -14,14 +15,26 @@
 import { describe, expect, test } from "vitest";
 import { withNeonTestBranch } from "../test-setup";
 import { drizzle } from "drizzle-orm/neon-serverless";
+import { Pool } from "@neondatabase/serverless";
 
-const endpoints = ["pooler", "direct"] as const;
+const cases = [
+  ["pooler", (url: string) => drizzle(url)],
+  ["direct", (url: string) => drizzle(url)],
+  [
+    "pooler",
+    (url: string) => drizzle({ client: new Pool({ connectionString: url }) }),
+  ],
+  [
+    "direct",
+    (url: string) => drizzle({ client: new Pool({ connectionString: url }) }),
+  ],
+] as const;
 
-describe.each(endpoints)("Neon serverless websockets (%s)", (endpoint) => {
+describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
   withNeonTestBranch({ endpoint, deleteBranch: true });
 
   test("create table", async () => {
-    const db = drizzle(process.env.DATABASE_URL!);
+    const db = makeDb(process.env.DATABASE_URL!);
 
     await db.execute(`
       CREATE TABLE users (
@@ -44,8 +57,10 @@ describe.each(endpoints)("Neon serverless websockets (%s)", (endpoint) => {
     await db.$client.end();
   });
 
-  test("tests are not isolated", async () => {
-    const db = drizzle(process.env.DATABASE_URL!);
+  test("tests are not isolated within a test file", async () => {
+    const db = drizzle({
+      client: new Pool({ connectionString: process.env.DATABASE_URL }),
+    });
 
     const newUser = await db.execute(`
       INSERT INTO users (name)
@@ -66,7 +81,9 @@ describe.each(endpoints)("Neon serverless websockets (%s)", (endpoint) => {
   });
 
   test("interactive transactions are supported", async () => {
-    const db = drizzle(process.env.DATABASE_URL!);
+    const db = drizzle({
+      client: new Pool({ connectionString: process.env.DATABASE_URL }),
+    });
 
     try {
       await db.execute("BEGIN");

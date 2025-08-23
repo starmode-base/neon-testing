@@ -15,7 +15,7 @@ import { Pool } from "@neondatabase/serverless";
 
 const endpoints = ["pooler", "direct"] as const;
 
-describe.each(endpoints)("Neon serverless websockets (%s)", (endpoint) => {
+describe.each(endpoints)("Neon WebSocket (%s)", (endpoint) => {
   withNeonTestBranch({ endpoint, deleteBranch: true });
 
   test("create table", async () => {
@@ -42,7 +42,7 @@ describe.each(endpoints)("Neon serverless websockets (%s)", (endpoint) => {
     await pool.end();
   });
 
-  test("tests are not isolated", async () => {
+  test("tests are not isolated within a test file", async () => {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
     const newUser = await pool.query(`
