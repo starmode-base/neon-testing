@@ -117,7 +117,6 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
 
     // Scoped handlers to temporarily suppress Neon WS close errors
     let neonWsErrorHandler: ((err: Error) => void) | undefined;
-    let neonWsRejectionHandler: ((reason: unknown) => void) | undefined;
 
     // WebSocket tracking to gracefully close Neon sockets before deletion
     let originalNeonWsCtor: any | undefined;
@@ -246,26 +245,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
           throw err;
         };
 
-        neonWsRejectionHandler = (reason: any) => {
-          const message = reason?.message as string | undefined;
-          const stack = reason?.stack as string | undefined;
-          const isNeonWsClose =
-            typeof message === "string" &&
-            message.includes("Connection terminated unexpectedly") &&
-            typeof stack === "string" &&
-            stack.includes("@neondatabase/serverless");
-          if (isNeonWsClose) return;
-          if (neonWsRejectionHandler) {
-            process.removeListener(
-              "unhandledRejection",
-              neonWsRejectionHandler,
-            );
-          }
-          throw reason;
-        };
-
         process.prependListener("uncaughtException", neonWsErrorHandler);
-        process.prependListener("unhandledRejection", neonWsRejectionHandler);
       }
     });
 
@@ -283,11 +263,6 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       if (neonWsErrorHandler) {
         process.removeListener("uncaughtException", neonWsErrorHandler);
         neonWsErrorHandler = undefined;
-      }
-
-      if (neonWsRejectionHandler) {
-        process.removeListener("unhandledRejection", neonWsRejectionHandler);
-        neonWsRejectionHandler = undefined;
       }
     });
   };
