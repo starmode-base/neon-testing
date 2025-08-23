@@ -111,7 +111,7 @@ test("database operations", async () => {
 });
 ```
 
-## Driver Examples
+## Driver examples
 
 The [examples/drivers/](examples/drivers/) directory contains examples for different database drivers and ORMs, including HTTP, WebSocket, and TCP protocols with various libraries like `@neondatabase/serverless`, `pg`, `postgres`, and Drizzle ORM.
 
@@ -119,7 +119,10 @@ Each example demonstrates connection management, transaction support, and test i
 
 ## Configuration
 
-Configuration happens in two places: base configuration in `makeNeonTesting()` and optional overrides in `withNeonTestBranch()`. The base configuration sets defaults for all tests, while overrides allow per-test-file customization.
+You configure neon-testing in two places:
+
+- **Base settings** in `makeNeonTesting()`
+- **Optional overrides** in `withNeonTestBranch()`
 
 See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L32-L65).
 
