@@ -15,8 +15,8 @@ import { Pool } from "pg";
 
 const endpoints = ["pooler", "direct"] as const;
 
-describe.each(endpoints)("node-postgres driver (%s)", (endpoint) => {
-  withNeonTestBranch({ endpoint });
+describe.each(endpoints)("node-postgres (%s)", (endpoint) => {
+  withNeonTestBranch({ endpoint, deleteBranch: true });
 
   test("create table", async () => {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
@@ -38,10 +38,11 @@ describe.each(endpoints)("node-postgres driver (%s)", (endpoint) => {
     const users = await pool.query(`SELECT * FROM users`);
     expect(users.rows).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
 
+    // 👎 Have to manually end the connection unless disabling `deleteBranch`
     await pool.end();
   });
 
-  test("tests are not isolated", async () => {
+  test("tests are not isolated within a test file", async () => {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
     const newUser = await pool.query(`
@@ -58,32 +59,31 @@ describe.each(endpoints)("node-postgres driver (%s)", (endpoint) => {
       { id: 2, name: "Rebecca Jorden" },
     ]);
 
+    // 👎 Have to manually end the connection unless disabling `deleteBranch`
     await pool.end();
   });
 
   test("interactive transactions are supported", async () => {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
-    const client = await pool.connect();
 
     try {
-      await client.query("BEGIN");
-      await client.query(`INSERT INTO users (name) VALUES ('Private Vasquez')`);
+      await pool.query("BEGIN");
+      await pool.query(`INSERT INTO users (name) VALUES ('Private Vasquez')`);
       // Duplicate unique constraint error - will roll back the transaction
-      await client.query(`INSERT INTO users (name) VALUES ('Private Vasquez')`);
-      await client.query("COMMIT");
+      await pool.query(`INSERT INTO users (name) VALUES ('Private Vasquez')`);
+      await pool.query("COMMIT");
     } catch {
-      await client.query("ROLLBACK");
-    } finally {
-      client.release();
+      await pool.query("ROLLBACK");
     }
 
-    const users = await client.query(`SELECT * FROM users`);
+    const users = await pool.query(`SELECT * FROM users`);
     expect(users.rows).toStrictEqual([
       { id: 1, name: "Ellen Ripley" },
       { id: 2, name: "Rebecca Jorden" },
       // Private Vasquez is not inserted because of the transaction rollback
     ]);
 
+    // 👎 Have to manually end the connection unless disabling `deleteBranch`
     await pool.end();
   });
 });

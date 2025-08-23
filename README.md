@@ -24,7 +24,7 @@ Using an actual clone of your production database for integration testing lets y
 
 ### Prerequisites
 
-- A [Neon project](https://console.neon.com/app/projects) with a database
+- A [Neon project](https://console.neon.tech/app/projects) with a database
 - A [Neon API key](https://neon.com/docs/manage/api-keys) for programmatic access
 
 ### Install

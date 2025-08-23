@@ -1,12 +1,13 @@
 /**
- * drizzle-orm/neon-http
+ * @neondatabase/serverless
  *
  * Protocol:                                  | HTTP
- * Driver:                                    | drizzle-orm/neon-http
+ * Driver:                                    | @neondatabase/serverless
  * ORM:                                       | drizzle-orm
- * Interactive transactions                   | ✅
+ * Interactive transactions                   | ❌
  * Automatic connection lifecycle management  | ✅
  *
+ * https://www.npmjs.com/package/@neondatabase/serverless
  * https://www.npmjs.com/package/drizzle-orm
  * https://orm.drizzle.team/docs/get-started/neon-new
  * https://orm.drizzle.team/docs/connect-neon
@@ -14,14 +15,20 @@
 import { describe, expect, test } from "vitest";
 import { withNeonTestBranch } from "../test-setup";
 import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from "@neondatabase/serverless";
 import { lazySingleton } from "../../singleton";
 
-const endpoints = ["pooler", "direct"] as const;
+const cases = [
+  ["pooler", (url: string) => drizzle(url)],
+  ["direct", (url: string) => drizzle(url)],
+  ["pooler", (url: string) => drizzle({ client: neon(url) })],
+  ["direct", (url: string) => drizzle({ client: neon(url) })],
+] as const;
 
-describe.each(endpoints)("Drizzle Neon serverless http (%s)", (endpoint) => {
-  withNeonTestBranch({ endpoint });
+describe.each(cases)("Drizzle Neon HTTP (%s)", (endpoint, makeDb) => {
+  withNeonTestBranch({ endpoint, deleteBranch: true });
 
-  const db = lazySingleton(() => drizzle(process.env.DATABASE_URL!));
+  const db = lazySingleton(() => makeDb(process.env.DATABASE_URL!));
 
   test("create table", async () => {
     await db().execute(`
@@ -43,7 +50,7 @@ describe.each(endpoints)("Drizzle Neon serverless http (%s)", (endpoint) => {
     expect(users).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
   });
 
-  test("tests are not isolated", async () => {
+  test("tests are not isolated within a test file", async () => {
     const { rows: newUser } = await db().execute(`
       INSERT INTO users (name)
       VALUES ('Rebecca Jorden')

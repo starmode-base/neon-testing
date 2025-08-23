@@ -38,7 +38,7 @@ export interface NeonTestingOptions {
   /**
    * The Neon project ID to operate on
    *
-   * https://console.neon.com/app/projects
+   * https://console.neon.tech/app/projects
    */
   projectId: string;
   /** The parent branch ID for the new branch */

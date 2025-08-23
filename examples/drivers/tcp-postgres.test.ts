@@ -12,44 +12,43 @@
 import { describe, expect, test } from "vitest";
 import { withNeonTestBranch } from "../test-setup";
 import postgres from "postgres";
+import { lazySingleton } from "../../singleton";
 
 const endpoints = ["pooler", "direct"] as const;
 
-describe.each(endpoints)("Postgres.js driver (%s)", (endpoint) => {
+describe.each(endpoints)("Postgres.js (%s)", (endpoint) => {
   withNeonTestBranch({ endpoint });
 
-  test("create table", async () => {
-    const sql = postgres(process.env.DATABASE_URL!);
+  const sql = lazySingleton(() => postgres(process.env.DATABASE_URL!));
 
-    await sql`
+  test("create table", async () => {
+    await sql()`
       CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL UNIQUE
       )
     `;
 
-    const newUser = await sql`
+    const newUser = await sql()`
       INSERT INTO users (name)
       VALUES ('Ellen Ripley')
       RETURNING *
     `;
     expect([...newUser]).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
 
-    const users = await sql`SELECT * FROM users`;
+    const users = await sql()`SELECT * FROM users`;
     expect([...users]).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
   });
 
-  test("tests are not isolated", async () => {
-    const sql = postgres(process.env.DATABASE_URL!);
-
-    const newUser = await sql`
+  test("tests are not isolated within a test file", async () => {
+    const newUser = await sql()`
       INSERT INTO users (name)
       VALUES ('Rebecca Jorden')
       RETURNING *
     `;
     expect([...newUser]).toStrictEqual([{ id: 2, name: "Rebecca Jorden" }]);
 
-    const users = await sql`SELECT * FROM users`;
+    const users = await sql()`SELECT * FROM users`;
     expect([...users]).toStrictEqual([
       // Ellen Ripley is already in the table from the previous test
       { id: 1, name: "Ellen Ripley" },
@@ -58,19 +57,17 @@ describe.each(endpoints)("Postgres.js driver (%s)", (endpoint) => {
   });
 
   test("interactive transactions are supported", async () => {
-    const sql = postgres(process.env.DATABASE_URL!);
-
     try {
-      await sql`BEGIN`;
-      await sql`INSERT INTO users (name) VALUES ('Private Vasquez')`;
+      await sql()`BEGIN`;
+      await sql()`INSERT INTO users (name) VALUES ('Private Vasquez')`;
       // Duplicate unique constraint error - will roll back the transaction
-      await sql`INSERT INTO users (name) VALUES ('Private Vasquez')`;
-      await sql`COMMIT`;
+      await sql()`INSERT INTO users (name) VALUES ('Private Vasquez')`;
+      await sql()`COMMIT`;
     } catch {
-      await sql`ROLLBACK`;
+      await sql()`ROLLBACK`;
     }
 
-    const users = await sql`SELECT * FROM users`;
+    const users = await sql()`SELECT * FROM users`;
     expect([...users]).toStrictEqual([
       { id: 1, name: "Ellen Ripley" },
       { id: 2, name: "Rebecca Jorden" },
