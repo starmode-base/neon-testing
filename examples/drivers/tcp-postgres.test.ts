@@ -1,7 +1,11 @@
 /**
- * Postgres.js
+ * postgres (Postgres.js)
  *
- * Supports interactive transactions
+ * Protocol:                                  | TCP
+ * Driver:                                    | postgres
+ * ORM:                                       | -
+ * Interactive transactions                   | ✅
+ * Automatic connection lifecycle management  | ✅
  *
  * https://www.npmjs.com/package/postgres
  */

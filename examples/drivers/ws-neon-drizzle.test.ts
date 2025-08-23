@@ -1,7 +1,11 @@
 /**
  * drizzle-orm/neon-serverless
  *
- * Supports interactive transactions
+ * Protocol:                                  | WebSocket
+ * Driver:                                    | drizzle-orm/neon-serverless
+ * ORM:                                       | drizzle-orm
+ * Interactive transactions                   | ✅
+ * Automatic connection lifecycle management  | ❌
  *
  * https://www.npmjs.com/package/drizzle-orm
  * https://orm.drizzle.team/docs/get-started/neon-new

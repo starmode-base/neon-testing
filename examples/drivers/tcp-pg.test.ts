@@ -1,7 +1,11 @@
 /**
- * node-postgres
+ * pg (node-postgres)
  *
- * Supports interactive transactions
+ * Protocol:                                  | TCP
+ * Driver:                                    | pg
+ * ORM:                                       | -
+ * Interactive transactions                   | ✅
+ * Automatic connection lifecycle management  | ❌
  *
  * https://www.npmjs.com/package/pg
  */

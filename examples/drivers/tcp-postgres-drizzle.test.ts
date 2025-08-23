@@ -1,16 +1,19 @@
 /**
- * drizzle-orm/neon-serverless
+ * drizzle-orm/postgres-js (Postgres.js)
  *
- * Supports interactive transactions
+ * Protocol:                                  | TCP
+ * Driver:                                    | drizzle-orm/postgres-js
+ * ORM:                                       | drizzle-orm
+ * Interactive transactions                   | ✅
+ * Automatic connection lifecycle management  | ✅
  *
+ * https://www.npmjs.com/package/postgres
  * https://www.npmjs.com/package/drizzle-orm
- * https://orm.drizzle.team/docs/get-started/neon-new
- * https://orm.drizzle.team/docs/connect-neon
+ * https://orm.drizzle.team/docs/get-started-postgresql#postgresjs
  */
 import { describe, expect, test } from "vitest";
 import { withNeonTestBranch } from "../test-setup";
 import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
 
 const endpoints = ["pooler", "direct"] as const;
 
@@ -18,9 +21,7 @@ describe.each(endpoints)("TCP Drizzle Postgres.js (%s)", (endpoint) => {
   withNeonTestBranch({ endpoint });
 
   test("create table", async () => {
-    const db = drizzle({
-      client: postgres(process.env.DATABASE_URL!),
-    });
+    const db = drizzle(process.env.DATABASE_URL!);
 
     await db.execute(`
       CREATE TABLE users (
@@ -41,9 +42,7 @@ describe.each(endpoints)("TCP Drizzle Postgres.js (%s)", (endpoint) => {
   });
 
   test("tests are not isolated", async () => {
-    const db = drizzle({
-      client: postgres(process.env.DATABASE_URL!),
-    });
+    const db = drizzle(process.env.DATABASE_URL!);
 
     const newUser = await db.execute(`
       INSERT INTO users (name)
@@ -61,9 +60,7 @@ describe.each(endpoints)("TCP Drizzle Postgres.js (%s)", (endpoint) => {
   });
 
   test("interactive transactions are supported", async () => {
-    const db = drizzle({
-      client: postgres(process.env.DATABASE_URL!),
-    });
+    const db = drizzle(process.env.DATABASE_URL!);
 
     try {
       await db.execute("BEGIN");

@@ -1,13 +1,17 @@
 /**
  * @neondatabase/serverless
  *
- * Supports interactive transactions
+ * Protocol:                                  | WebSocket
+ * Driver:                                    | @neondatabase/serverless
+ * ORM:                                       | -
+ * Interactive transactions                   | ✅
+ * Automatic connection lifecycle management  | ❌
  *
  * https://www.npmjs.com/package/@neondatabase/serverless
  */
 import { describe, expect, test } from "vitest";
 import { withNeonTestBranch } from "../test-setup";
-import { Pool } from "@neondatabase/serverless";
+import { Pool, Client } from "@neondatabase/serverless";
 
 const endpoints = ["pooler", "direct"] as const;
 

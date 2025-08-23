@@ -1,7 +1,11 @@
 /**
- * drizzle-orm/neon-http
+ * @neondatabase/serverless
  *
- * Does not support interactive transactions
+ * Protocol:                                  | HTTP
+ * Driver:                                    | @neondatabase/serverless
+ * ORM:                                       | drizzle-orm
+ * Interactive transactions                   | ✅
+ * Automatic connection lifecycle management  | ✅
  *
  * https://www.npmjs.com/package/drizzle-orm
  * https://orm.drizzle.team/docs/get-started/neon-new
