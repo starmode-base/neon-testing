@@ -8,6 +8,8 @@ import {
 } from "@neondatabase/api-client";
 import { afterAll, beforeAll } from "vitest";
 
+export { lazySingleton } from "./singleton";
+
 /**
  * Creates a PostgreSQL connection URI from connection parameters
  *
