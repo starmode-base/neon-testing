@@ -7,7 +7,10 @@ import {
   type ConnectionDetails,
 } from "@neondatabase/api-client";
 import { afterAll, beforeAll } from "vitest";
-import { neonConfig } from "@neondatabase/serverless";
+import {
+  neonConfig,
+  type WebSocketConstructor,
+} from "@neondatabase/serverless";
 
 /**
  * Creates a PostgreSQL connection URI from connection parameters
@@ -47,17 +50,20 @@ export interface NeonTestingOptions {
   schemaOnly?: boolean;
   /** The type of connection to create (pooler is recommended) */
   endpoint?: "pooler" | "direct";
-  /** Delete the test branch in afterAll (default: true) */
+  /**
+   * Delete the test branch in afterAll (default: true)
+   *
+   * Disabling this will leave each test branch in the Neon project after the
+   * test suite runs
+   */
   deleteBranch?: boolean;
   /**
-   * Suppress the specific Neon WS "Connection terminated unexpectedly" error
-   * that may surface when deleting a branch with open websocket connections
-   * (default: true)
-   */
-  suppressNeonWsCloseError?: boolean;
-  /**
    * Automatically close Neon WebSocket connections opened during tests before
-   * deleting the branch (default: true)
+   * deleting the branch (default: false)
+   *
+   * Suppresses the specific Neon WebSocket "Connection terminated unexpectedly"
+   * error that may surface when deleting a branch with open WebSocket
+   * connections
    */
   autoCloseWebSockets?: boolean;
 }
@@ -119,7 +125,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     let neonWsErrorHandler: ((err: Error) => void) | undefined;
 
     // WebSocket tracking to gracefully close Neon sockets before deletion
-    let originalNeonWsCtor: any | undefined;
+    let originalNeonWsCtor: WebSocketConstructor | undefined;
     const trackedNeonSockets = new Set();
 
     const installNeonWebSocketTracker = () => {
@@ -150,10 +156,12 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       };
       neonConfig.webSocketConstructor = TrackingWebSocket as any;
     };
+
     const restoreNeonWebSocket = () => {
       neonConfig.webSocketConstructor = originalNeonWsCtor;
       originalNeonWsCtor = undefined;
     };
+
     const closeTrackedNeonWebSockets = async (timeoutMs = 1000) => {
       const sockets = Array.from(trackedNeonSockets);
       trackedNeonSockets.clear();
@@ -164,6 +172,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
               try {
                 if (ws.readyState === ws.CLOSED) return resolve();
                 const done = () => resolve();
+
                 try {
                   ws.addEventListener("close", done, { once: true });
                 } catch {}
@@ -222,20 +231,22 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     beforeAll(async () => {
       process.env.DATABASE_URL = await createBranch();
 
-      if (options.autoCloseWebSockets !== false) installNeonWebSocketTracker();
+      if (options.autoCloseWebSockets) {
+        // Track Neon WebSocket connections to close them before deleting the
+        // branch
+        installNeonWebSocketTracker();
 
-      if (options.suppressNeonWsCloseError !== false) {
+        // Suppress the specific Neon WS "Connection terminated unexpectedly"
+        // error that may surface when deleting a branch with open websocket
+        // connections
         neonWsErrorHandler = (err) => {
-          const message = err?.message as string | undefined;
-          const stack = err?.stack as string | undefined;
           const isNeonWsClose =
-            typeof message === "string" &&
-            message.includes("Connection terminated unexpectedly") &&
-            typeof stack === "string" &&
-            stack.includes("@neondatabase/serverless");
+            err.message.includes("Connection terminated unexpectedly") &&
+            err.stack?.includes("@neondatabase/serverless");
 
           if (isNeonWsClose) {
-            return; // swallow only this specific Neon WS termination error
+            // Swallow only this specific Neon WS termination error
+            return;
           }
 
           // For any other error, detach and rethrow
@@ -250,7 +261,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     });
 
     afterAll(async () => {
-      if (options.autoCloseWebSockets !== false) {
+      if (options.autoCloseWebSockets) {
         await closeTrackedNeonWebSockets();
         restoreNeonWebSocket();
       }
