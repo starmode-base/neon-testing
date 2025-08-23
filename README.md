@@ -122,6 +122,21 @@ withNeonTestBranch({ schemaOnly: true });
 
 See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L30-L63).
 
+## Cleanup utilities
+
+### deleteAllTestBranches()
+
+The `deleteAllTestBranches()` function is a utility that deletes all test branches from your Neon project. This is useful for cleanup when tests fail unexpectedly and leave orphaned test branches.
+
+```typescript
+import { withNeonTestBranch } from "./test-setup";
+
+// Access the cleanup utility
+await withNeonTestBranch.deleteAllTestBranches();
+```
+
+The function identifies test branches by looking for the `integration-test: true` annotation that neon-testing automatically adds to all test branches it creates.
+
 ## Isolate individual tests
 
 Tests within a single test file share the same database instance (Neon branch), so while all test files are isolated, tests within a test file are not. If you prefer individual tests within a test file to be isolated, [simply clean up the database in a beforeEach lifecycle](examples/neon-serverless-http-isolated.test.ts).
