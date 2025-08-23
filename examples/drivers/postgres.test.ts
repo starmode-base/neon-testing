@@ -62,7 +62,7 @@ describe.each(endpoints)("Postgres.js driver (%s)", (endpoint) => {
       // Duplicate unique constraint error - will roll back the transaction
       await sql`INSERT INTO users (name) VALUES ('Private Vasquez')`;
       await sql`COMMIT`;
-    } catch (error) {
+    } catch {
       await sql`ROLLBACK`;
     }
 

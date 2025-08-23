@@ -62,7 +62,7 @@ describe.each(endpoints)("Neon serverless http (%s)", (endpoint) => {
       // Duplicate unique constraint error - will fail but not roll back
       await sql`INSERT INTO users (name) VALUES ('Private Vasquez')`;
       await sql`COMMIT`;
-    } catch (error) {
+    } catch {
       await sql`ROLLBACK`;
     }
 

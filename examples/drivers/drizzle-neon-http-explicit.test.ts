@@ -65,7 +65,7 @@ describe.each(endpoints)("Drizzle Neon serverless http (%s)", (endpoint) => {
       // Duplicate unique constraint error - will fail but not roll back
       await db().execute(`INSERT INTO users (name) VALUES ('Private Vasquez')`);
       await db().execute(`COMMIT`);
-    } catch (error) {
+    } catch {
       await db().execute(`ROLLBACK`);
     }
 

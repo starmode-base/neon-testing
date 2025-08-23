@@ -67,7 +67,7 @@ describe.each(endpoints)("Neon serverless websockets (%s)", (endpoint) => {
       // Duplicate unique constraint error - will roll back the transaction
       await client.query(`INSERT INTO users (name) VALUES ('Private Vasquez')`);
       await client.query("COMMIT");
-    } catch (error) {
+    } catch {
       await client.query("ROLLBACK");
     } finally {
       client.release();
