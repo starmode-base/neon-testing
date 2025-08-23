@@ -68,7 +68,7 @@ describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
   });
 
   test("create table", async () => {
-    const { end, sql } = makeDb(process.env.DATABASE_URL!);
+    const { sql } = makeDb(process.env.DATABASE_URL!);
 
     await sql(`
       CREATE TABLE users (
@@ -86,13 +86,10 @@ describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
 
     const users = await sql(`SELECT * FROM users`);
     expect(users.rows).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
-
-    // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    // await end();
   });
 
   test("tests are not isolated within a test file", async () => {
-    const { end, sql } = makeDb(process.env.DATABASE_URL!);
+    const { sql } = makeDb(process.env.DATABASE_URL!);
 
     const newUser = await sql(`
       INSERT INTO users (name)
@@ -107,13 +104,10 @@ describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
       { id: 1, name: "Ellen Ripley" },
       { id: 2, name: "Rebecca Jorden" },
     ]);
-
-    // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    // await end();
   });
 
   test("interactive transactions are supported", async () => {
-    const { end, sql } = makeDb(process.env.DATABASE_URL!);
+    const { sql } = makeDb(process.env.DATABASE_URL!);
 
     try {
       await sql("BEGIN");
@@ -131,8 +125,5 @@ describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
       { id: 2, name: "Rebecca Jorden" },
       // Private Vasquez is not inserted because of the transaction rollback
     ]);
-
-    // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    // await end();
   });
 });
