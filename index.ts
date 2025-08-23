@@ -125,67 +125,39 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     let neonWsErrorHandler: ((err: Error) => void) | undefined;
 
     // WebSocket tracking to gracefully close Neon sockets before deletion
-    let originalNeonWsCtor: WebSocketConstructor | undefined;
-    const trackedNeonSockets = new Set();
+    const trackedNeonSockets = new Set<WebSocket>();
 
+    // Installs a custom WebSocket constructor that tracks Neon WebSocket
+    // connections and closes them before deleting the branch
     const installNeonWebSocketTracker = () => {
       const baseCtor = neonConfig.webSocketConstructor ?? globalThis.WebSocket;
-      if (typeof baseCtor !== "function") return;
-
-      originalNeonWsCtor = neonConfig.webSocketConstructor;
 
       const TrackingWebSocket = class extends (baseCtor as any) {
         constructor(url: any, protocols?: any) {
           super(url, protocols);
-          try {
-            const href =
-              typeof url === "string" ? url : String(url?.toString?.() ?? "");
 
-            if (href.includes(".neon.tech/")) {
-              trackedNeonSockets.add(this);
-              this.addEventListener(
-                "close",
-                () => trackedNeonSockets.delete(this),
-                { once: true },
-              );
-            }
-          } catch {
-            // noop
+          const href =
+            typeof url === "string" ? url : String(url?.toString?.() ?? "");
+
+          if (href.includes(".neon.tech/")) {
+            trackedNeonSockets.add(this as any);
+            this.addEventListener(
+              "close",
+              () => trackedNeonSockets.delete(this as any),
+              { once: true },
+            );
           }
         }
       };
-      neonConfig.webSocketConstructor = TrackingWebSocket as any;
-    };
 
-    const restoreNeonWebSocket = () => {
-      neonConfig.webSocketConstructor = originalNeonWsCtor;
-      originalNeonWsCtor = undefined;
+      neonConfig.webSocketConstructor = TrackingWebSocket as any;
     };
 
     const closeTrackedNeonWebSockets = async (timeoutMs = 1000) => {
       const sockets = Array.from(trackedNeonSockets);
       trackedNeonSockets.clear();
-      await Promise.all(
-        sockets.map(
-          (ws: any) =>
-            new Promise<void>((resolve) => {
-              try {
-                if (ws.readyState === ws.CLOSED) return resolve();
-                const done = () => resolve();
 
-                try {
-                  ws.addEventListener("close", done, { once: true });
-                } catch {}
-                try {
-                  ws.close(1000, "test teardown");
-                } catch {}
-                setTimeout(done, timeoutMs);
-              } catch {
-                resolve();
-              }
-            }),
-        ),
-      );
+      sockets.forEach((ws) => ws.close());
     };
 
     /**
@@ -263,7 +235,6 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     afterAll(async () => {
       if (options.autoCloseWebSockets) {
         await closeTrackedNeonWebSockets();
-        restoreNeonWebSocket();
       }
 
       if (options.deleteBranch !== false) {
