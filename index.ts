@@ -46,7 +46,12 @@ export interface NeonTestingOptions {
   schemaOnly?: boolean;
   /** The type of connection to create (pooler is recommended) */
   endpoint?: "pooler" | "direct";
-  /** Delete the test branch in afterAll (default: true) */
+  /**
+   * Delete the test branch in afterAll (default: true)
+   *
+   * Disabling this will leave each test branch in the Neon project after the
+   * test suite runs
+   */
   deleteBranch?: boolean;
 }
 
