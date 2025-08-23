@@ -12,6 +12,7 @@ Using an actual clone of your production database for integration testing lets y
 
 - 🔄 **Isolated test environments** - Each test file runs against its own Postgres database with your actual schema and constraints
 - 🧹 **Automatic cleanup** - Neon test branches are created and destroyed automatically
+- 🐛 **Debug friendly** - Option to preserve test branches for debugging failed tests
 - 🛡️ **TypeScript native** - No JavaScript support
 - 🎯 **ESM only** - No CommonJS support
 
@@ -84,8 +85,6 @@ export const withNeonTestBranch = makeNeonTesting({
 });
 ```
 
-See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L30-L63).
-
 #### 2. Enable database testing
 
 Then call the exported test lifecycle function in the test files where you need database access.
@@ -112,9 +111,34 @@ test("database operations", async () => {
 });
 ```
 
-#### Override configuration
+## Driver Examples
 
-Branch from a specific branch instead of the default branch:
+The [examples/drivers/](examples/drivers/) directory contains examples for different database drivers and ORMs, including HTTP, WebSocket, and TCP protocols with various libraries like `@neondatabase/serverless`, `pg`, `postgres`, and Drizzle ORM.
+
+Each example demonstrates connection management, transaction support, and test isolation patterns.
+
+## Configuration
+
+Configuration happens in two places: base configuration in `makeNeonTesting()` and optional overrides in `withNeonTestBranch()`. The base configuration sets defaults for all tests, while overrides allow per-test-file customization.
+
+See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L32-L65).
+
+### Base configuration
+
+Configure the test lifecycle function in `makeNeonTesting()`:
+
+```typescript
+import { makeNeonTesting } from "neon-testing";
+
+export const withNeonTestBranch = makeNeonTesting({
+  apiKey: "apiKey",
+  projectId: "projectId",
+});
+```
+
+### Override configuration
+
+Override the base configuration as needed in individual test files:
 
 ```typescript
 import { withNeonTestBranch } from "./test-setup";
@@ -122,17 +146,7 @@ import { withNeonTestBranch } from "./test-setup";
 withNeonTestBranch({ parentBranchId: "br-staging-123" });
 ```
 
-Don't copy data when branching:
-
-```typescript
-import { withNeonTestBranch } from "./test-setup";
-
-withNeonTestBranch({ schemaOnly: true });
-```
-
-See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L30-L63).
-
-## Cleanup utilities
+## Utilities
 
 ### deleteAllTestBranches()
 
@@ -146,6 +160,23 @@ await withNeonTestBranch.deleteAllTestBranches();
 ```
 
 The function identifies test branches by looking for the `integration-test: true` annotation that neon-testing automatically adds to all test branches it creates.
+
+### lazySingleton()
+
+The `lazySingleton()` function creates a lazy singleton from a factory function. This is useful for managing database connections efficiently:
+
+```typescript
+import { lazySingleton } from "neon-testing";
+import { neon } from "@neondatabase/serverless";
+
+const sql = lazySingleton(() => neon(process.env.DATABASE_URL!));
+
+// The connection is only created when first called
+test("database operations", async () => {
+  const users = await sql()`SELECT * FROM users`;
+  // ...
+});
+```
 
 ## Contributing
 
