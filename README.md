@@ -20,6 +20,14 @@ Using an actual clone of your production database for integration testing lets y
 1. **Test execution**: Your tests run against the isolated database
 1. **Cleanup**: After tests complete, the branch is automatically deleted
 
+### Test isolation
+
+Tests within a test file share the same database instance (Neon branch), so while all test files are isolated, tests within a test file are intentionally not.
+
+This works because Vitest runs test files in parallel, but tests within each test file run sequentially one at a time.
+
+If you prefer individual tests within a test file to be isolated, [simply clean up the database in a beforeEach lifecycle](examples/isolated.test.ts).
+
 ## Quick start
 
 ### Prerequisites
@@ -136,12 +144,6 @@ await withNeonTestBranch.deleteAllTestBranches();
 ```
 
 The function identifies test branches by looking for the `integration-test: true` annotation that neon-testing automatically adds to all test branches it creates.
-
-## Isolate individual tests
-
-Tests within a single test file share the same database instance (Neon branch), so while all test files are isolated, tests within a test file are not. If you prefer individual tests within a test file to be isolated, [simply clean up the database in a beforeEach lifecycle](examples/neon-serverless-http-isolated.test.ts).
-
-This works because Vitest runs test files in parallel, but tests within each test file run one at a time.
 
 ## Contributing
 
