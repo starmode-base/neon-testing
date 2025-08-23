@@ -26,7 +26,7 @@ const cases = [
 ] as const;
 
 describe.each(cases)("Drizzle Neon HTTP (%s)", (endpoint, makeDb) => {
-  withNeonTestBranch({ endpoint, deleteBranch: true });
+  withNeonTestBranch({ endpoint });
 
   const db = lazySingleton(() => makeDb(process.env.DATABASE_URL!));
 

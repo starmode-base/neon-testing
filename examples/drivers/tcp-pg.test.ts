@@ -16,7 +16,7 @@ import { Pool } from "pg";
 const endpoints = ["pooler", "direct"] as const;
 
 describe.each(endpoints)("node-postgres (%s)", (endpoint) => {
-  withNeonTestBranch({ endpoint, deleteBranch: true });
+  withNeonTestBranch({ endpoint });
 
   test("create table", async () => {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL! });

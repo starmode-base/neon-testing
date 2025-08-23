@@ -30,7 +30,7 @@ const cases = [
 ] as const;
 
 describe.each(cases)("node-postgres (%s)", (endpoint, makeDb) => {
-  withNeonTestBranch({ endpoint, deleteBranch: true });
+  withNeonTestBranch({ endpoint });
 
   test("create table", async () => {
     const pool = makeDb(process.env.DATABASE_URL!);

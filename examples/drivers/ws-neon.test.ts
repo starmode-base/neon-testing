@@ -5,7 +5,7 @@
  * Driver:                                    | @neondatabase/serverless
  * ORM:                                       | -
  * Interactive transactions                   | ✅
- * Automatic connection lifecycle management  | ❌
+ * Automatic connection lifecycle management  | ⚠️ with `autoCloseWebSockets` flag
  *
  * https://www.npmjs.com/package/@neondatabase/serverless
  */
@@ -39,7 +39,7 @@ const cases = [
 describe.each(cases)("Neon WebSocket (%s)", (endpoint, makeDb) => {
   withNeonTestBranch({
     endpoint,
-    deleteBranch: true,
+    // deleteBranch: false,
     autoCloseWebSockets: true,
   });
 
