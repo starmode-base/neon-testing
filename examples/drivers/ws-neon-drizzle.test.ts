@@ -14,8 +14,8 @@
  */
 import { describe, expect, test } from "vitest";
 import { withNeonTestBranch } from "../test-setup";
-import { drizzle } from "drizzle-orm/neon-serverless";
 import { Pool } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-serverless";
 
 const cases = [
   [
