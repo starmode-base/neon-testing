@@ -122,38 +122,28 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     let branchId: string | undefined;
 
     // Scoped handlers to temporarily suppress Neon WS close errors
-    let neonWsErrorHandler: ((err: Error) => void) | undefined;
+    let neonWsErrorHandler: ((error: Error) => void) | undefined;
 
     // WebSocket tracking to gracefully close Neon sockets before deletion
     const trackedNeonSockets = new Set<WebSocket>();
 
-    // Installs a custom WebSocket constructor that tracks Neon WebSocket
-    // connections and closes them before deleting the branch
-    const installNeonWebSocketTracker = () => {
-      const baseCtor = neonConfig.webSocketConstructor ?? globalThis.WebSocket;
+    const TrackingWebSocket = class extends WebSocket {
+      constructor(url: string) {
+        super(url);
 
-      const TrackingWebSocket = class extends (baseCtor as any) {
-        constructor(url: any, protocols?: any) {
-          super(url, protocols);
-
-          const href =
-            typeof url === "string" ? url : String(url?.toString?.() ?? "");
-
-          if (href.includes(".neon.tech/")) {
-            trackedNeonSockets.add(this as any);
-            this.addEventListener(
-              "close",
-              () => trackedNeonSockets.delete(this as any),
-              { once: true },
-            );
-          }
+        if (!url.includes(".neon.tech/")) {
+          return;
         }
-      };
 
-      neonConfig.webSocketConstructor = TrackingWebSocket as any;
+        trackedNeonSockets.add(this);
+
+        this.addEventListener("close", () => trackedNeonSockets.delete(this), {
+          once: true,
+        });
+      }
     };
 
-    const closeTrackedNeonWebSockets = async (timeoutMs = 1000) => {
+    const closeTrackedNeonWebSockets = async () => {
       const sockets = Array.from(trackedNeonSockets);
       trackedNeonSockets.clear();
 
@@ -204,9 +194,9 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       process.env.DATABASE_URL = await createBranch();
 
       if (options.autoCloseWebSockets) {
-        // Track Neon WebSocket connections to close them before deleting the
-        // branch
-        installNeonWebSocketTracker();
+        // Install a custom WebSocket constructor that tracks Neon WebSocket
+        // connections and closes them before deleting the branch
+        neonConfig.webSocketConstructor = TrackingWebSocket;
 
         // Suppress the specific Neon WS "Connection terminated unexpectedly"
         // error that may surface when deleting a branch with open websocket
