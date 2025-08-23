@@ -129,6 +129,6 @@ describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
     ]);
 
     // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    // await end();
+    await end();
   });
 });
