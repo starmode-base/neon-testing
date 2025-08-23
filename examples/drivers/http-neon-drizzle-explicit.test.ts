@@ -4,7 +4,7 @@
  * Protocol:                                  | HTTP
  * Driver:                                    | @neondatabase/serverless
  * ORM:                                       | drizzle-orm
- * Interactive transactions                   | ✅
+ * Interactive transactions                   | ❌
  * Automatic connection lifecycle management  | ✅
  *
  * https://www.npmjs.com/package/drizzle-orm

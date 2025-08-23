@@ -11,7 +11,7 @@
  */
 import { describe, expect, test } from "vitest";
 import { withNeonTestBranch } from "../test-setup";
-import { Pool, Client } from "@neondatabase/serverless";
+import { Pool } from "@neondatabase/serverless";
 
 const endpoints = ["pooler", "direct"] as const;
 

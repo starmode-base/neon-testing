@@ -4,7 +4,7 @@
  * Protocol:                                  | HTTP
  * Driver:                                    | @neondatabase/serverless
  * ORM:                                       | -
- * Interactive transactions                   | ✅
+ * Interactive transactions                   | ❌
  * Automatic connection lifecycle management  | ✅
  *
  * https://www.npmjs.com/package/@neondatabase/serverless
