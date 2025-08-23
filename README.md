@@ -1,5 +1,7 @@
 # Neon testing
 
+[![Integration tests](https://github.com/starmode-base/neon-testing/actions/workflows/test.yml/badge.svg)](https://github.com/starmode-base/neon-testing/actions/workflows/test.yml)
+
 A Vitest utility for automated integration tests with [Neon](https://neon.com/).
 
 Each test file runs against its own isolated PostgreSQL database (Neon branch), ensuring clean, parallel, and reproducible testing of code that relies on a database. Because it uses a real database, you can test code logic that depends on database features such as transaction rollbacks, unique constraints, and more.
