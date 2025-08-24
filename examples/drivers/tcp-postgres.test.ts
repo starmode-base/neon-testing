@@ -12,7 +12,7 @@
 import { describe, expect, test } from "vitest";
 import { withNeonTestBranch } from "../test-setup";
 import postgres from "postgres";
-import { lazySingleton } from "../../singleton";
+import { lazySingleton } from "neon-testing";
 
 const endpoints = ["pooler", "direct"] as const;
 
