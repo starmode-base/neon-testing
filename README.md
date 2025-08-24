@@ -47,13 +47,18 @@ bun add -d neon-testing
 ### Minimal example
 
 ```typescript
-// database.test.ts
+// minimal.test.ts
 import { expect, test } from "vitest";
 import { makeNeonTesting } from "neon-testing";
 import { Pool } from "@neondatabase/serverless";
 
 // Enable Neon test branch for this test file
-makeNeonTesting({ apiKey: "apiKey", projectId: "projectId" })();
+makeNeonTesting({
+  apiKey: "apiKey",
+  projectId: "projectId",
+  // Recommended for Neon WebSocket drivers to automatically close connections
+  autoCloseWebSockets: true,
+})();
 
 test("database operations", async () => {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -63,8 +68,6 @@ test("database operations", async () => {
 
   const users = await pool.query(`SELECT * FROM users`);
   expect(users.rows).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
-
-  await pool.end();
 });
 ```
 
@@ -90,13 +93,16 @@ export const withNeonTestBranch = makeNeonTesting({
 Then call the exported test lifecycle function in the test files where you need database access.
 
 ```typescript
-// database.test.ts
+// recommended.test.ts
 import { expect, test } from "vitest";
 import { withNeonTestBranch } from "./test-setup";
 import { Pool } from "@neondatabase/serverless";
 
 // Enable Neon test branch for this test file
-withNeonTestBranch();
+withNeonTestBranch({
+  // Recommended for Neon WebSocket drivers to automatically close connections
+  autoCloseWebSockets: true,
+});
 
 test("database operations", async () => {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -106,16 +112,25 @@ test("database operations", async () => {
 
   const users = await pool.query(`SELECT * FROM users`);
   expect(users.rows).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
-
-  await pool.end();
 });
 ```
 
-## Driver examples
+## Drivers
 
-The [examples/drivers/](examples/drivers/) directory contains examples for different database drivers and ORMs, including HTTP, WebSocket, and TCP protocols with various libraries like `@neondatabase/serverless`, `pg`, `postgres`, and Drizzle ORM.
+This library works with any database driver that supports Neon Postgres and Vitest. The examples below demonstrate connection management, transaction support, and test isolation patterns for some popular drivers.
 
-Each example demonstrates connection management, transaction support, and test isolation patterns.
+**IMPORTANT:** For Neon WebSocket drivers, enable `autoCloseWebSockets` in your `makeNeonTesting()` or `withNeonTestBranch()` configuration. This automatically closes WebSocket connections when deleting test branches, preventing connection termination errors.
+
+### Examples
+
+- [Neon serverless WebSocket](examples/drivers/ws-neon.test.ts)
+- [Neon serverless WebSocket + Drizzle](examples/drivers/ws-neon-drizzle.test.ts)
+- [Neon serverless HTTP](examples/drivers/http-neon.test.ts)
+- [Neon serverless HTTP + Drizzle](examples/drivers/http-neon-drizzle.test.ts)
+- [node-postgres](examples/drivers/tcp-pg.test.ts)
+- [node-postgres + Drizzle](examples/drivers/tcp-pg-drizzle.test.ts)
+- [Postgres.js](examples/drivers/tcp-postgres.test.ts)
+- [Postgres.js + Drizzle](examples/drivers/tcp-postgres-drizzle.test.ts)
 
 ## Configuration
 
