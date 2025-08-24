@@ -61,11 +61,7 @@ const cases = [
 ] as const;
 
 describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
-  withNeonTestBranch({
-    endpoint,
-    // deleteBranch: false,
-    autoCloseWebSockets: true,
-  });
+  withNeonTestBranch({ endpoint, autoCloseWebSockets: true });
 
   test("create table", async () => {
     const { end, sql } = makeDb(process.env.DATABASE_URL!);
