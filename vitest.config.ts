@@ -8,4 +8,8 @@ dotenv.config();
 // `makeNeonTesting()()` in the test environment.
 delete process.env.DATABASE_URL;
 
-export default defineConfig({});
+export default defineConfig({
+  test: {
+    testTimeout: 30000,
+  },
+});
