@@ -119,7 +119,7 @@ test("database operations", async () => {
 
 This library works with any database driver that supports Neon Postgres and Vitest. The examples below demonstrate connection management, transaction support, and test isolation patterns for some popular drivers.
 
-**IMPORTANT:** For Neon WebSocket drivers, enable `autoCloseWebSockets` in your `makeNeonTesting()` or `withNeonTestBranch()` configuration. This automatically closes WebSocket connections when deleting test branches, preventing connection termination errors.
+**IMPORTANT:** For [Neon WebSocket drivers](https://neon.com/docs/serverless/serverless-driver), enable `autoCloseWebSockets` in your `makeNeonTesting()` or `withNeonTestBranch()` configuration. This automatically closes WebSocket connections when deleting test branches, preventing connection termination errors.
 
 ### Examples
 
