@@ -1,4 +1,4 @@
-import { makeNeonTesting } from "..";
+import { makeNeonTesting } from "neon-testing";
 
 export const withNeonTestBranch = makeNeonTesting({
   apiKey: process.env.NEON_API_KEY!,
