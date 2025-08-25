@@ -38,8 +38,8 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Install local package for package-name imports
-        run: bun add file:.
+      - name: Link package for self-referential imports
+        run: bun link
 
       - name: Run tests
         env:
