@@ -139,7 +139,7 @@ You configure neon-testing in two places:
 - **Base settings** in `makeNeonTesting()`
 - **Optional overrides** in `withNeonTestBranch()`
 
-See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L32-L65).
+See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L33-L75).
 
 ### Base configuration
 
