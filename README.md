@@ -223,10 +223,8 @@ The command will abort if there are uncommitted changes in the working tree, or 
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Need expert help?
+## Need help?
 
-Hi, I'm [@lirbank](https://github.com/lirbank). I take on a few consulting projects each year where I help companies build, unblock, and ship. Here's what I do:
+Hi, I’m [Mikael Lirbank](https://www.lirbank.com/). I help teams build reliable systems. I care about quality—AI evals, robust test suites, clean data models, and clean architecture. Sometimes I draw user interfaces.
 
-**[STΛR MODΞ](https://www.starmode.dev/)** — A boutique AI development studio I run with AI/ML expert and data scientist [@spencer-g-smith](https://github.com/spencer-g-smith). We help companies build accurate AI solutions: AI-first apps, advanced workflows, and agentic systems.
-
-**[Mikael Lirbank](https://www.lirbank.com/)** — My solo practice, focused on web app development, test automation, code quality, and technical architecture. I'm friendly and happy to help with the hard stuff.
+Want to ship faster without breaking things? Let’s talk.
