@@ -164,6 +164,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       branchId = data.branch.id;
 
       const [connectionUri] = data.connection_uris ?? [];
+
       if (!connectionUri) {
         throw new Error("No connection URI found");
       }
@@ -184,7 +185,10 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     }
 
     beforeAll(async () => {
-      process.env.DATABASE_URL = await createBranch();
+      process.env.DATABASE_URL = await withRetry(createBranch, {
+        maxRetries: 5,
+        baseDelayMs: 1000,
+      });
 
       if (options.autoCloseWebSockets) {
         // Install a custom WebSocket constructor that tracks Neon WebSocket
@@ -217,6 +221,10 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
   return testDbSetup;
 }
 
+/**
+ * Error handler: Suppress Neon WebSocket "Connection terminated unexpectedly"
+ * error
+ */
 const neonWsErrorHandler = (error: Error) => {
   const isNeonWsClose =
     error.message.includes("Connection terminated unexpectedly") &&
@@ -230,3 +238,48 @@ const neonWsErrorHandler = (error: Error) => {
   // For any other error, detach and rethrow
   throw error;
 };
+
+/**
+ * Reusable API call wrapper with automatic retry on 423 errors with exponential
+ * backoff
+ *
+ * https://neon.com/docs/reference/typescript-sdk#error-handling
+ * https://neon.com/docs/changelog/2022-07-20
+ */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  options: {
+    maxRetries: number;
+    baseDelayMs: number;
+  },
+): Promise<T> {
+  if (!Number.isInteger(options.maxRetries) || options.maxRetries <= 0) {
+    throw new Error("maxRetries must be a positive integer");
+  }
+
+  if (!Number.isInteger(options.baseDelayMs) || options.baseDelayMs <= 0) {
+    throw new Error("baseDelayMs must be a positive integer");
+  }
+
+  for (let attempt = 1; attempt <= options.maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      const status = error?.response?.status;
+
+      if (status === 423 && attempt < options.maxRetries) {
+        const delay = options.baseDelayMs * Math.pow(2, attempt - 1);
+
+        console.log(
+          `API call failed with 423, retrying in ${delay}ms (attempt ${attempt}/${options.maxRetries})`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+
+        continue;
+      }
+
+      throw error;
+    }
+  }
+  throw new Error("apiCallWithRetry reached unexpected end");
+}
