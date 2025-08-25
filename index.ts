@@ -7,6 +7,7 @@ import {
   type ConnectionDetails,
 } from "@neondatabase/api-client";
 import { afterAll, beforeAll } from "vitest";
+import { neonConfig } from "@neondatabase/serverless";
 
 export { lazySingleton } from "./singleton";
 
@@ -62,6 +63,15 @@ export interface NeonTestingOptions {
    * test suite runs
    */
   deleteBranch?: boolean;
+  /**
+   * Automatically close Neon WebSocket connections opened during tests before
+   * deleting the branch (default: false)
+   *
+   * Suppresses the specific Neon WebSocket "Connection terminated unexpectedly"
+   * error that may surface when deleting a branch with open WebSocket
+   * connections
+   */
+  autoCloseWebSockets?: boolean;
 }
 
 /** Options for overriding test database setup (excludes apiKey) */
@@ -118,6 +128,21 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     // Each test file gets its own branch ID and database client
     let branchId: string | undefined;
 
+    // List of tracked Neon WebSocket connections
+    const neonSockets = new Set<WebSocket>();
+
+    // Custom WebSocket constructor that tracks Neon WebSocket connections
+    class TrackingWebSocket extends WebSocket {
+      constructor(url: string) {
+        super(url);
+
+        // Only track Neon WebSocket connections
+        if (!url.includes(".neon.tech/")) return;
+
+        neonSockets.add(this);
+      }
+    }
+
     /**
      * Create a new test branch
      *
@@ -160,13 +185,29 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
 
     beforeAll(async () => {
       process.env.DATABASE_URL = await createBranch();
+
+      if (options.autoCloseWebSockets) {
+        // Install a custom WebSocket constructor that tracks Neon WebSocket
+        // connections and closes them before deleting the branch
+        neonConfig.webSocketConstructor = TrackingWebSocket;
+      }
     });
 
     afterAll(async () => {
+      process.env.DATABASE_URL = undefined;
+
+      // Close all tracked Neon WebSocket connections before deleting the branch
+      if (options.autoCloseWebSockets) {
+        // Suppress Neon WebSocket "Connection terminated unexpectedly" error
+        process.prependListener("uncaughtException", neonWsErrorHandler);
+
+        // Close tracked Neon WebSocket connections before deleting the branch
+        neonSockets.forEach((ws) => ws.close());
+      }
+
       if (options.deleteBranch !== false) {
         await deleteBranch();
       }
-      process.env.DATABASE_URL = undefined;
     });
   };
 
@@ -175,3 +216,17 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
 
   return testDbSetup;
 }
+
+const neonWsErrorHandler = (error: Error) => {
+  const isNeonWsClose =
+    error.message.includes("Connection terminated unexpectedly") &&
+    error.stack?.includes("@neondatabase/serverless");
+
+  if (isNeonWsClose) {
+    // Swallow this specific Neon WS termination error
+    return;
+  }
+
+  // For any other error, detach and rethrow
+  throw error;
+};

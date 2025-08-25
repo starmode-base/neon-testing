@@ -5,7 +5,7 @@
  * Driver:                                    | @neondatabase/serverless
  * ORM:                                       | drizzle-orm
  * Interactive transactions                   | ✅
- * Automatic connection lifecycle management  | ❌
+ * Automatic connection lifecycle management  | ⚠️ with `autoCloseWebSockets` flag
  *
  * https://www.npmjs.com/package/@neondatabase/serverless
  * https://www.npmjs.com/package/drizzle-orm
@@ -61,7 +61,7 @@ const cases = [
 ] as const;
 
 describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
-  withNeonTestBranch({ endpoint });
+  withNeonTestBranch({ endpoint, autoCloseWebSockets: true });
 
   test("create table", async () => {
     const { end, sql } = makeDb(process.env.DATABASE_URL!);
@@ -84,7 +84,7 @@ describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
     expect(users.rows).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
 
     // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    await end();
+    // await end();
   });
 
   test("tests are not isolated within a test file", async () => {
@@ -105,7 +105,7 @@ describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
     ]);
 
     // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    await end();
+    // await end();
   });
 
   test("interactive transactions are supported", async () => {
@@ -129,6 +129,6 @@ describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
     ]);
 
     // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    await end();
+    // await end();
   });
 });
