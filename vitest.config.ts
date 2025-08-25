@@ -10,9 +10,6 @@ dotenv.config();
 delete process.env.DATABASE_URL;
 
 export default defineConfig({
-  test: {
-    testTimeout: 30000,
-  },
   resolve: {
     alias: {
       "neon-testing": path.resolve(__dirname, "index.ts"),
