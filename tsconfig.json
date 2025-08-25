@@ -8,8 +8,8 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
-    "noEmit": true,
-    "baseUrl": "."
+    "noEmit": true
+    // "baseUrl": "."
     // "paths": {
     //   "neon-testing": ["./index.ts"]
     // }
