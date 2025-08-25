@@ -25,11 +25,11 @@ Each test file runs against its own isolated PostgreSQL database (Neon branch), 
 
 ### Test isolation
 
-Tests within a test file share the same database instance (Neon branch), so while all test files are isolated, tests within a test file are intentionally not.
+Tests in the same file share a single database instance (Neon branch). This means test files are fully isolated from each other, but individual tests within a file are intentionally not isolated.
 
-This works because Vitest runs test files in parallel, but tests within each test file run sequentially one at a time.
+This works because Vitest runs test files in [parallel](https://vitest.dev/guide/parallelism.html), while tests within each file run sequentially.
 
-If you prefer individual tests within a test file to be isolated, [simply clean up the database in a beforeEach lifecycle](examples/isolated.test.ts).
+If you prefer individual tests to be isolated, you can [reset the database](examples/isolated.test.ts) in a `beforeEach` lifecycle hook.
 
 ## Quick start
 
