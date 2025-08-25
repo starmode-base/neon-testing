@@ -1,6 +1,6 @@
 {
   "name": "neon-testing",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A Vitest utility for seamless integration tests with Neon Postgres",
   "keywords": [
     "neon",
@@ -17,7 +17,8 @@
   "module": "index.ts",
   "type": "module",
   "files": [
-    "index.ts"
+    "index.ts",
+    "singleton.ts"
   ],
   "scripts": {
     "test": "vitest",
