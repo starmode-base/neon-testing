@@ -225,6 +225,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Need help?
 
-Hi, I’m [Mikael Lirbank](https://www.lirbank.com/). I help teams build reliable systems. I care about quality—AI evals, robust test suites, clean data models, and clean architecture. Sometimes I draw user interfaces.
+Hi, I’m [Mikael Lirbank](https://www.lirbank.com/). I help teams build reliable AI systems. I care about quality—AI evals, robust test suites, clean data models, and clean architecture. Sometimes I draw user interfaces.
 
 Want to ship faster without breaking things? Let’s talk.
