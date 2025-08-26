@@ -6,7 +6,6 @@
     "neon",
     "postgres",
     "postgresql",
-    "testing",
     "vitest"
   ],
   "author": "Mikael Lirbank",
@@ -14,8 +13,11 @@
   "repository": "https://github.com/starmode-base/neon-testing",
   "homepage": "https://github.com/starmode-base/neon-testing",
   "bugs": "https://github.com/starmode-base/neon-testing/issues",
-  "module": "index.ts",
   "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./utils": "./singleton.ts"
+  },
   "files": [
     "index.ts",
     "singleton.ts"
@@ -31,7 +33,7 @@
     "@neondatabase/api-client": "^2.2.0"
   },
   "peerDependencies": {
-    "vitest": "^3.2.4"
+    "vitest": "^3"
   },
   "devDependencies": {
     "@neondatabase/serverless": "^1.0.1",

@@ -15,7 +15,7 @@ import { describe, expect, test } from "vitest";
 import { withNeonTestBranch } from "../test-setup";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { lazySingleton } from "neon-testing";
+import { lazySingleton } from "neon-testing/utils";
 
 const cases = [
   ["pooler", (url: string) => drizzle(url)],

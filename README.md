@@ -184,7 +184,7 @@ The function identifies test branches by looking for the `integration-test: true
 The `lazySingleton()` function creates a lazy singleton from a factory function. This is useful for managing database connections efficiently:
 
 ```typescript
-import { lazySingleton } from "neon-testing";
+import { lazySingleton } from "neon-testing/utils";
 import { neon } from "@neondatabase/serverless";
 
 const sql = lazySingleton(() => neon(process.env.DATABASE_URL!));

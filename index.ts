@@ -9,8 +9,6 @@ import {
 import { afterAll, beforeAll } from "vitest";
 import { neonConfig } from "@neondatabase/serverless";
 
-export { lazySingleton } from "./singleton";
-
 /**
  * Creates a PostgreSQL connection URI from connection parameters
  *
