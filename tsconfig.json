@@ -9,10 +9,6 @@
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "baseUrl": ".",
-    "paths": {
-      "neon-testing": ["index.ts"],
-      "neon-testing/utils": ["singleton.ts"]
-    }
+    "baseUrl": "."
   }
 }
