@@ -20,6 +20,7 @@ export default defineConfig({
       // ensures that tests always use the local source code, not a published
       // package. This is only for this library, not for the project using it.
       "neon-testing": path.resolve(__dirname, "index.ts"),
+      "neon-testing/utils": path.resolve(__dirname, "singleton.ts"),
     },
   },
 });
