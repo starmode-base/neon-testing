@@ -36,11 +36,11 @@
     "build": "rm -rf dist && tsc",
     "test": "vitest run",
     "format": "prettier --write .",
-    "preversion": "bun run build && bun run test && bunx prettier --check .",
-    "release:patch": "bun run preversion && bun pm version patch && bun publish --tag latest",
-    "release:minor": "bun run preversion && bun pm version minor && bun publish --tag latest",
-    "release:major": "bun run preversion && bun pm version major && bun publish --tag latest",
-    "release:beta": "bun run preversion && bun pm version prerelease --preid=beta && bun publish --tag beta",
+    "check": "bun run build && bun run test && bunx prettier --check .",
+    "release:patch": "bun run check && bun pm version patch && bun publish --tag latest",
+    "release:minor": "bun run check && bun pm version minor && bun publish --tag latest",
+    "release:major": "bun run check && bun pm version major && bun publish --tag latest",
+    "release:beta": "bun run check && bun pm version prerelease --preid=beta && bun publish --tag beta",
     "postpublish": "git push --follow-tags"
   },
   "dependencies": {
