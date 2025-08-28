@@ -34,9 +34,9 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "test": "vitest run",
+    "test": "vitest",
     "format": "prettier --write .",
-    "check": "bun run build && bun run test && bunx prettier --check .",
+    "check": "bun run build && bunx vitest run && bunx prettier --check .",
     "release:patch": "bun run check && bun pm version patch && bun publish --tag latest",
     "release:minor": "bun run check && bun pm version minor && bun publish --tag latest",
     "release:major": "bun run check && bun pm version major && bun publish --tag latest",
