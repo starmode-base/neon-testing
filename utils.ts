@@ -1,2 +1,2 @@
-export { lazySingleton } from "./singleton";
-export { neonTesting } from "./vite-plugin";
+export { lazySingleton } from "./singleton.js";
+export { neonTesting } from "./vite-plugin.js";
