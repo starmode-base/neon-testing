@@ -22,10 +22,6 @@
     "./utils": {
       "types": "./dist/utils.d.ts",
       "import": "./dist/utils.js"
-    },
-    "./vite-plugin": {
-      "types": "./dist/vite-plugin.d.ts",
-      "import": "./dist/vite-plugin.js"
     }
   },
   "types": "./dist/index.d.ts",
