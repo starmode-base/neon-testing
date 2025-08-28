@@ -34,7 +34,7 @@
     "vitest-setup.js"
   ],
   "scripts": {
-    "test": "vitest",
+    "test": "bun run build && vitest",
     "format": "prettier --write .",
     "build": "rm -rf dist && tsc -p tsconfig.build.json && cp vitest-setup.js dist/",
     "release:patch": "bun pm version patch && bun publish --tag latest",
