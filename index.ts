@@ -9,8 +9,6 @@ import {
 import { afterAll, beforeAll } from "vitest";
 import { neonConfig } from "@neondatabase/serverless";
 
-export * from "./utils";
-
 /**
  * Creates a PostgreSQL connection URI from connection parameters
  *
