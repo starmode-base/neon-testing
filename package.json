@@ -51,7 +51,7 @@
     "release:major": "bun pm version major && bun publish --tag latest",
     "release:beta": "bun pm version prerelease --preid=beta && bun publish --tag beta",
     "prepublishOnly": "tsc && vitest run && prettier --check .",
-    "postpublish": "git push --tags"
+    "postpublish": "git push --follow-tags"
   },
   "dependencies": {
     "@neondatabase/api-client": "^2.2.0"
