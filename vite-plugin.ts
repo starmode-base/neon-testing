@@ -1,11 +1,11 @@
 import { fileURLToPath } from "node:url";
-import type { Plugin, UserConfig } from "vite";
+import type { Plugin } from "vite";
 
-export function neonTesting() {
+export function neonTesting(): Plugin {
   return {
     name: "neon-testing-plugin",
     enforce: "pre",
-    config(user: any) {
+    config(user) {
       const setupPath = fileURLToPath(
         new URL("./vitest-setup.ts", import.meta.url),
       );
@@ -18,5 +18,5 @@ export function neonTesting() {
         },
       };
     },
-  } satisfies Plugin;
+  };
 }
