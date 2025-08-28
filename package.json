@@ -15,31 +15,13 @@
   "bugs": "https://github.com/starmode-base/neon-testing/issues",
   "type": "module",
   "exports": {
-    ".": {
-      "types": "./index.ts",
-      "import": "./index.ts",
-      "default": "./index.ts"
-    },
-    "./utils": {
-      "types": "./utils.ts",
-      "import": "./utils.ts",
-      "default": "./utils.ts"
-    },
-    "./vite-plugin": {
-      "types": "./vite-plugin.ts",
-      "import": "./vite-plugin.ts",
-      "default": "./vite-plugin.ts"
-    },
-    "./vitest-setup": {
-      "types": "./vitest-setup.ts",
-      "import": "./vitest-setup.ts",
-      "default": "./vitest-setup.ts"
-    }
+    ".": "./index.ts",
+    "./utils": "./utils.ts"
   },
   "files": [
     "index.ts",
-    "utils.ts",
     "singleton.ts",
+    "utils.ts",
     "vite-plugin.ts",
     "vitest-setup.ts"
   ],
