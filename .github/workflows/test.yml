@@ -44,4 +44,4 @@ jobs:
           # https://github.com/starmode-base/neon-testing/settings/secrets/actions
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
           NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
-        run: bunx vitest run
+        run: bun run test

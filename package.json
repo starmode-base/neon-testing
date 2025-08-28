@@ -33,9 +33,9 @@
     "dist"
   ],
   "scripts": {
-    "test": "vitest run",
+    "test": "bun run build && vitest run",
     "format": "prettier --write .",
-    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "build": "rm -rf dist && tsc",
     "release:patch": "bun pm version patch && bun publish --tag latest",
     "release:minor": "bun pm version minor && bun publish --tag latest",
     "release:major": "bun pm version major && bun publish --tag latest",
