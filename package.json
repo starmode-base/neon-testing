@@ -23,7 +23,7 @@
     "singleton.ts",
     "utils.ts",
     "vite-plugin.ts",
-    "vitest-setup.ts"
+    "vitest-setup.js"
   ],
   "scripts": {
     "test": "vitest",

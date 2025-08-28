@@ -1,5 +1,4 @@
-const isVitest =
-  process.env.VITEST === "true" || !!process.env.VITEST_WORKER_ID;
+const isVitest = process.env.VITEST;
 
 if (isVitest) {
   if (process.env.DATABASE_URL) {
