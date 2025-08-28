@@ -24,7 +24,6 @@
       "import": "./dist/utils.js"
     }
   },
-  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
