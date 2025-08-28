@@ -15,8 +15,16 @@
   "bugs": "https://github.com/starmode-base/neon-testing/issues",
   "type": "module",
   "exports": {
-    ".": "./index.ts",
-    "./utils": "./utils.ts"
+    ".": {
+      "types": "./index.ts",
+      "import": "./index.ts",
+      "default": "./index.ts"
+    },
+    "./utils": {
+      "types": "./utils.ts",
+      "import": "./utils.ts",
+      "default": "./utils.ts"
+    }
   },
   "files": [
     "index.ts",
