@@ -15,24 +15,33 @@
   "bugs": "https://github.com/starmode-base/neon-testing/issues",
   "type": "module",
   "exports": {
-    ".": "./index.ts",
-    "./utils": "./utils.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "import": "./dist/utils.js"
+    },
+    "./vite-plugin": {
+      "types": "./dist/vite-plugin.d.ts",
+      "import": "./dist/vite-plugin.js"
+    }
   },
+  "types": "./dist/index.d.ts",
   "files": [
-    "index.ts",
-    "singleton.ts",
-    "utils.ts",
-    "vite-plugin.ts",
+    "dist",
     "vitest-setup.js"
   ],
   "scripts": {
     "test": "vitest",
     "format": "prettier --write .",
-    "release:patch": "bun pm version patch && bun publish --tag latest",
-    "release:minor": "bun pm version minor && bun publish --tag latest",
-    "release:major": "bun pm version major && bun publish --tag latest",
-    "release:beta": "bun pm version prerelease --preid=beta && bun publish --tag beta",
-    "prepublishOnly": "tsc && vitest run && prettier --check .",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && cp vitest-setup.js dist/",
+    "release:patch": "bun pm version patch && bun run build && bun publish --tag latest",
+    "release:minor": "bun pm version minor && bun run build && bun publish --tag latest",
+    "release:major": "bun pm version major && bun run build && bun publish --tag latest",
+    "release:beta": "bun pm version prerelease --preid=beta && bun run build && bun publish --tag beta",
+    "prepublishOnly": "bun run build && vitest run && prettier --check .",
     "postpublish": "git push --follow-tags"
   },
   "dependencies": {
