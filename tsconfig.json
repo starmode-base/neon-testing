@@ -9,9 +9,9 @@
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "declaration": true,
-    // "emitDeclarationOnly": false,
-    "outDir": "dist",
-    "sourceMap": true
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "dist"
   },
   "include": ["*.ts"],
   "exclude": ["dist", "examples", "node_modules", "vitest.config.ts"]
