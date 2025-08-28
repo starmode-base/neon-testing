@@ -24,6 +24,16 @@
       "types": "./utils.ts",
       "import": "./utils.ts",
       "default": "./utils.ts"
+    },
+    "./vite-plugin": {
+      "types": "./vite-plugin.ts",
+      "import": "./vite-plugin.ts",
+      "default": "./vite-plugin.ts"
+    },
+    "./vitest-setup": {
+      "types": "./vitest-setup.ts",
+      "import": "./vitest-setup.ts",
+      "default": "./vitest-setup.ts"
     }
   },
   "files": [
