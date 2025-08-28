@@ -1,6 +1,6 @@
 {
   "name": "neon-testing",
-  "version": "2.0.0",
+  "version": "2.0.2-beta.1",
   "description": "A Vitest utility for seamless integration tests with Neon Postgres",
   "keywords": [
     "neon",
@@ -16,16 +16,22 @@
   "type": "module",
   "exports": {
     ".": "./index.ts",
-    "./utils": "./singleton.ts"
+    "./utils": "./utils.ts"
   },
   "files": [
     "index.ts",
-    "singleton.ts"
+    "utils.ts",
+    "singleton.ts",
+    "vite-plugin.ts",
+    "vitest-setup.ts"
   ],
   "scripts": {
     "test": "vitest",
     "format": "prettier --write .",
-    "release": "bun publish",
+    "release:patch": "bun pm version patch && bun publish --tag latest",
+    "release:minor": "bun pm version minor && bun publish --tag latest",
+    "release:major": "bun pm version major && bun publish --tag latest",
+    "release:beta": "bun pm version prerelease --preid=beta && bun publish --tag beta",
     "prepublishOnly": "git diff-index --quiet HEAD || (echo 'Error: You have uncommitted changes' && exit 1) && tsc && vitest run && prettier --check .",
     "postpublish": "git tag v$(bun -p \"require('./package.json').version\") && git push --tags"
   },
