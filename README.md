@@ -164,6 +164,21 @@ import { withNeonTestBranch } from "./test-setup";
 withNeonTestBranch({ parentBranchId: "br-staging-123" });
 ```
 
+## CI/CD
+
+It is easy to run Neon integration in CI/CD
+
+### GitHub Actions
+
+[Example](.github/workflows/test.yml)
+
+### Vercel
+
+Two options:
+
+- Add `vitest run` to the `build` script in [package.json](https://github.com/starmode-base/template-tanstack-start/blob/83c784e164b55fd8d59c5b57b907251e5eb03de1/app/package.json#L11l)
+- Add `vitest run` to the _Build Command_ in the Vercel dashboard
+
 ## Utilities
 
 ### deleteAllTestBranches()
