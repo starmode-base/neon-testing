@@ -1,17 +1,13 @@
 import { defineConfig } from "vitest/config";
 import dotenv from "dotenv";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { neonTesting } from "./utils";
 
 dotenv.config();
-
-// This is a precaution to ensure that any production database URL is not used
-// in tests. The DATABASE_URL environment variable will be dynamically set by
-// `makeNeonTesting()()` in the test environment.
-delete process.env.DATABASE_URL;
 
 export default defineConfig({
   test: {
     testTimeout: 10000,
   },
-  plugins: [tsconfigPaths()],
+  plugins: [tsconfigPaths(), neonTesting({ debug: false })],
 });

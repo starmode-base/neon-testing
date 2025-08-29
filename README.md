@@ -13,7 +13,7 @@ Each test file runs against its own isolated PostgreSQL database (Neon branch), 
 - 🔄 **Isolated test environments** - Each test file runs against its own Postgres database with your actual schema and constraints
 - 🧹 **Automatic cleanup** - Neon test branches are created and destroyed automatically
 - 🐛 **Debug friendly** - Option to preserve test branches for debugging failed tests
-- 🛡️ **TypeScript native** - No JavaScript support
+- 🛡️ **TypeScript native** - With JavaScript support
 - 🎯 **ESM only** - No CommonJS support
 
 ## How it works
@@ -73,7 +73,23 @@ test("database operations", async () => {
 
 ### Recommended usage
 
-#### 1. Configuration
+#### 1. Plugin setup
+
+First, add the Vite plugin to clear any existing `DATABASE_URL` environment variable before tests run, ensuring tests use isolated test databases.
+
+```typescript
+// vitest.config.ts or vite.config.ts
+import { defineConfig } from "vitest/config";
+import { neonTesting } from "neon-testing/utils";
+
+export default defineConfig({
+  plugins: [neonTesting()],
+});
+```
+
+This plugin is recommended but not required. Without it, tests might accidentally use your existing `DATABASE_URL` (from `.env` files or environment variables) instead of the isolated test databases that neon-testing creates. This can happen if you forget to call `withNeonTestBranch()` in a test file where database writes happen.
+
+#### 2. Configuration
 
 Use the `makeNeonTesting` factory to generate a lifecycle function for your tests.
 
@@ -88,7 +104,7 @@ export const withNeonTestBranch = makeNeonTesting({
 });
 ```
 
-#### 2. Enable database testing
+#### 3. Enable database testing
 
 Then call the exported test lifecycle function in the test files where you need database access.
 
@@ -163,6 +179,21 @@ import { withNeonTestBranch } from "./test-setup";
 
 withNeonTestBranch({ parentBranchId: "br-staging-123" });
 ```
+
+## CI/CD
+
+It is easy to run Neon integration in CI/CD
+
+### GitHub Actions
+
+[Example](.github/workflows/test.yml)
+
+### Vercel
+
+Two options:
+
+- Add `vitest run` to the `build` script in [package.json](https://github.com/starmode-base/template-tanstack-start/blob/83c784e164b55fd8d59c5b57b907251e5eb03de1/app/package.json#L11l)
+- Add `vitest run` to the _Build Command_ in the Vercel dashboard
 
 ## Utilities
 
