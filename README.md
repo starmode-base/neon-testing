@@ -1,6 +1,8 @@
 # Neon testing
 
 [![Integration tests](https://github.com/starmode-base/neon-testing/actions/workflows/test.yml/badge.svg)](https://github.com/starmode-base/neon-testing/actions/workflows/test.yml)
+[![npm version](https://img.shields.io/npm/v/neon-testing)](https://www.npmjs.com/package/neon-testing)
+[![GitHub release](https://img.shields.io/github/v/release/starmode-base/neon-testing)](https://github.com/starmode-base/neon-testing/releases)
 
 A [Vitest](https://vitest.dev/) utility for seamless integration tests with [Neon Postgres](https://neon.com/).
 
@@ -155,7 +157,55 @@ You configure neon-testing in two places:
 - **Base settings** in `makeNeonTesting()`
 - **Optional overrides** in `withNeonTestBranch()`
 
-See all available options in [NeonTestingOptions](https://github.com/starmode-base/neon-testing/blob/main/index.ts#L33-L75).
+Configure these in `makeNeonTesting()` and optionally override per test file via `withNeonTestBranch()`.
+
+```typescript
+export interface NeonTestingOptions {
+  /**
+   * The Neon API key, this is used to create and teardown test branches
+   *
+   * https://neon.com/docs/manage/api-keys#creating-api-keys
+   */
+  apiKey: string;
+  /**
+   * The Neon project ID to operate on
+   *
+   * https://console.neon.tech/app/projects
+   */
+  projectId: string;
+  /**
+   * The parent branch ID for the new branch. If omitted or empty, the branch
+   * will be created from the project's default branch.
+   */
+  parentBranchId?: string;
+  /**
+   * Whether to create a schema-only branch (default: false)
+   */
+  schemaOnly?: boolean;
+  /**
+   * The type of connection to create (pooler is recommended)
+   */
+  endpoint?: "pooler" | "direct";
+  /**
+   * Delete the test branch in afterAll (default: true)
+   *
+   * Disabling this will leave each test branch in the Neon project after the
+   * test suite runs
+   */
+  deleteBranch?: boolean;
+  /**
+   * Automatically close Neon WebSocket connections opened during tests before
+   * deleting the branch (default: false)
+   *
+   * Suppresses the specific Neon WebSocket "Connection terminated unexpectedly"
+   * error that may surface when deleting a branch with open WebSocket
+   * connections
+   */
+  autoCloseWebSockets?: boolean;
+}
+```
+
+See all available options in [NeonTestingOptions](index.ts#L31-L73).
 
 ### Base configuration
 
@@ -180,20 +230,14 @@ import { withNeonTestBranch } from "./test-setup";
 withNeonTestBranch({ parentBranchId: "br-staging-123" });
 ```
 
-## CI/CD
+## Continuous integration
 
-It is easy to run Neon integration in CI/CD
+It’s easy to run Neon integration tests in CI/CD pipelines:
 
-### GitHub Actions
-
-[Example](.github/workflows/test.yml)
-
-### Vercel
-
-Two options:
-
-- Add `vitest run` to the `build` script in [package.json](https://github.com/starmode-base/template-tanstack-start/blob/83c784e164b55fd8d59c5b57b907251e5eb03de1/app/package.json#L11l)
-- Add `vitest run` to the _Build Command_ in the Vercel dashboard
+- **GitHub Actions** — see the [example workflow](.github/workflows/test.yml)
+- **Vercel** — either
+  - add `vitest run` to the `build` script in [package.json](https://github.com/starmode-base/template-tanstack-start/blob/83c784e164b55fd8d59c5b57b907251e5eb03de1/app/package.json#L11), or
+  - add `vitest run` to the _Build Command_ in the Vercel dashboard
 
 ## Utilities
 
