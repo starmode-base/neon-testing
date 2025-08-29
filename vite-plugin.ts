@@ -4,17 +4,20 @@ import type { Plugin } from "vite";
 export function neonTesting(): Plugin {
   return {
     name: "neon-testing-plugin",
-    enforce: "pre",
+    // Run as late as possible to reduce the risk of other plugins restoring
+    // DATABASE_URL after we clear it
+    enforce: "post",
     config(user) {
       const setupPath = fileURLToPath(
         new URL("./vitest-setup.js", import.meta.url),
       );
 
-      const setup = new Set([...(user.test?.setupFiles ?? []), setupPath]);
-
       return {
         test: {
-          setupFiles: Array.from(setup),
+          // Register the vitest-setup.js file to run after other setup files
+          setupFiles: Array.from(
+            new Set([...(user.test?.setupFiles ?? []), setupPath]),
+          ),
         },
       };
     },
