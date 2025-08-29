@@ -9,5 +9,5 @@ export default defineConfig({
   test: {
     testTimeout: 10000,
   },
-  plugins: [tsconfigPaths(), neonTesting()],
+  plugins: [tsconfigPaths(), neonTesting({ debug: false })],
 });

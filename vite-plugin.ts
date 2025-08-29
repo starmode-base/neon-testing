@@ -1,7 +1,16 @@
 import { fileURLToPath } from "node:url";
 import type { Plugin } from "vite";
 
-export function neonTesting(): Plugin {
+export function neonTesting(
+  options: {
+    /**
+     * Enable debug logging.
+     *
+     * @default false
+     */
+    debug?: boolean;
+  } = {},
+): Plugin {
   return {
     name: "neon-testing-plugin",
     // Run as late as possible to reduce the risk of other plugins restoring
@@ -18,6 +27,10 @@ export function neonTesting(): Plugin {
           setupFiles: Array.from(
             new Set([...(user.test?.setupFiles ?? []), setupPath]),
           ),
+          env: {
+            ...user.test?.env,
+            NEON_TESTING_DEBUG: options.debug ? "true" : "false",
+          },
         },
       };
     },
