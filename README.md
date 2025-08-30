@@ -1,4 +1,4 @@
-# Neon testing
+# Neon Testing
 
 [![Integration tests](https://github.com/starmode-base/neon-testing/actions/workflows/test.yml/badge.svg)](https://github.com/starmode-base/neon-testing/actions/workflows/test.yml)
 [![npm version](https://img.shields.io/npm/v/neon-testing)](https://www.npmjs.com/package/neon-testing)
@@ -43,12 +43,12 @@ If you prefer individual tests to be isolated, you can [reset the database](exam
 ### Install
 
 ```sh
-bun add -d neon-testing
+bun add -d neon-testing vitest
 ```
 
 ### Minimal example
 
-```typescript
+```ts
 // minimal.test.ts
 import { expect, test } from "vitest";
 import { makeNeonTesting } from "neon-testing";
@@ -79,7 +79,7 @@ test("database operations", async () => {
 
 First, add the Vite plugin to clear any existing `DATABASE_URL` environment variable before tests run, ensuring tests use isolated test databases.
 
-```typescript
+```ts
 // vitest.config.ts or vite.config.ts
 import { defineConfig } from "vitest/config";
 import { neonTesting } from "neon-testing/utils";
@@ -89,13 +89,13 @@ export default defineConfig({
 });
 ```
 
-This plugin is recommended but not required. Without it, tests might accidentally use your existing `DATABASE_URL` (from `.env` files or environment variables) instead of the isolated test databases that neon-testing creates. This can happen if you forget to call `withNeonTestBranch()` in a test file where database writes happen.
+This plugin is recommended but not required. Without it, tests might accidentally use your existing `DATABASE_URL` (from `.env` files or environment variables) instead of the isolated test databases that Neon Testing creates. This can happen if you forget to call `withNeonTestBranch()` in a test file where database writes happen.
 
 #### 2. Configuration
 
 Use the `makeNeonTesting` factory to generate a lifecycle function for your tests.
 
-```typescript
+```ts
 // test-setup.ts
 import { makeNeonTesting } from "neon-testing";
 
@@ -110,7 +110,7 @@ export const withNeonTestBranch = makeNeonTesting({
 
 Then call the exported test lifecycle function in the test files where you need database access.
 
-```typescript
+```ts
 // recommended.test.ts
 import { expect, test } from "vitest";
 import { withNeonTestBranch } from "./test-setup";
@@ -152,14 +152,14 @@ This library works with any database driver that supports Neon Postgres and Vite
 
 ## Configuration
 
-You configure neon-testing in two places:
+You configure Neon Testing in two places:
 
 - **Base settings** in `makeNeonTesting()`
 - **Optional overrides** in `withNeonTestBranch()`
 
 Configure these in `makeNeonTesting()` and optionally override per test file via `withNeonTestBranch()`.
 
-```typescript
+```ts
 export interface NeonTestingOptions {
   /**
    * The Neon API key, this is used to create and teardown test branches
@@ -211,7 +211,7 @@ See all available options in [NeonTestingOptions](index.ts#L31-L73).
 
 Configure the base settings in `makeNeonTesting()`:
 
-```typescript
+```ts
 import { makeNeonTesting } from "neon-testing";
 
 export const withNeonTestBranch = makeNeonTesting({
@@ -224,7 +224,7 @@ export const withNeonTestBranch = makeNeonTesting({
 
 Override the base configuration in specific test files with `withNeonTestBranch()`:
 
-```typescript
+```ts
 import { withNeonTestBranch } from "./test-setup";
 
 withNeonTestBranch({ parentBranchId: "br-staging-123" });
@@ -245,20 +245,20 @@ It’s easy to run Neon integration tests in CI/CD pipelines:
 
 The `deleteAllTestBranches()` function is a utility that deletes all test branches from your Neon project. This is useful for cleanup when tests fail unexpectedly and leave orphaned test branches.
 
-```typescript
+```ts
 import { withNeonTestBranch } from "./test-setup";
 
 // Access the cleanup utility
 await withNeonTestBranch.deleteAllTestBranches();
 ```
 
-The function identifies test branches by looking for the `integration-test: true` annotation that neon-testing automatically adds to all test branches it creates.
+The function identifies test branches by looking for the `integration-test: true` annotation that Neon Testing automatically adds to all test branches it creates.
 
 ### lazySingleton()
 
 The `lazySingleton()` function creates a lazy singleton from a factory function. This is useful for managing database connections efficiently:
 
-```typescript
+```ts
 import { lazySingleton } from "neon-testing/utils";
 import { neon } from "@neondatabase/serverless";
 
