@@ -80,7 +80,7 @@ test("database operations", async () => {
 First, add the Vite plugin to clear any existing `DATABASE_URL` environment variable before tests run, ensuring tests use isolated test databases.
 
 ```ts
-// vitest.config.ts or vite.config.ts
+// vitest.config.ts
 import { defineConfig } from "vitest/config";
 import { neonTesting } from "neon-testing/utils";
 
