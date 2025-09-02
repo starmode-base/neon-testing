@@ -4,7 +4,7 @@
 [![npm version](https://img.shields.io/npm/v/neon-testing)](https://www.npmjs.com/package/neon-testing)
 [![GitHub release](https://img.shields.io/github/v/release/starmode-base/neon-testing)](https://github.com/starmode-base/neon-testing/releases)
 
-A [Vitest](https://vitest.dev/) utility for seamless integration tests with [Neon Postgres](https://neon.com/).
+A [Vitest](https://vitest.dev/) utility for seamless integration tests with [Neon Postgres](https://neon.com/). <!-- A [STΛR MODΞ](https://starmode.dev) open-source project. -->
 
 Each test file runs against its own isolated PostgreSQL database (Neon branch), ensuring clean, parallel, and reproducible testing of code that interacts with a database. Because it uses a real, isolated clone of your production database, you can test code logic that depends on database features, such as transaction rollbacks, unique constraints, and more.
 
@@ -232,7 +232,7 @@ withNeonTestBranch({ parentBranchId: "br-staging-123" });
 
 ## Continuous integration
 
-It’s easy to run Neon integration tests in CI/CD pipelines:
+It's easy to run Neon integration tests in CI/CD pipelines:
 
 - **GitHub Actions** — see the [example workflow](.github/workflows/test.yml)
 - **Vercel** — either
@@ -294,12 +294,8 @@ bun run release
 
 The command will abort if there are uncommitted changes in the working tree, or if the `version` in [package.json](package.json) has not been incremented.
 
-## License
+## Author
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Hi, I'm [Mikael Lirbank](https://www.lirbank.com/). I build robust, reliable, high-quality AI systems. I care deeply about quality—AI evals, robust test suites, clean data models, and clean architecture.
 
-## Need help?
-
-Hi, I’m [Mikael Lirbank](https://www.lirbank.com/). I help teams build reliable AI systems. I care about quality—AI evals, robust test suites, clean data models, and clean architecture. Sometimes I draw user interfaces.
-
-Want to ship faster without breaking things? Let’s talk.
+Need help building elegant systems? [I'm happy to help](https://www.lirbank.com/).
