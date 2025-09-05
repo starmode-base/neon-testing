@@ -22,6 +22,10 @@
     "./utils": {
       "types": "./dist/utils.d.ts",
       "import": "./dist/utils.js"
+    },
+    "./vite": {
+      "types": "./dist/vite-plugin.d.ts",
+      "import": "./dist/vite-plugin.js"
     }
   },
   "files": [
@@ -54,5 +58,8 @@
     "typescript": "^5.9.2",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4"
+  },
+  "browser": {
+    "./dist/vite-plugin.js": "./dist/browser-empty.js"
   }
 }

@@ -1,2 +1,7 @@
+import { neonTesting as neonTestingVite } from "./vite-plugin.js";
 export { lazySingleton } from "./singleton.js";
-export { neonTesting } from "./vite-plugin.js";
+
+/**
+ * @deprecated Import the Vite plugin from "neon-testing/vite" instead.
+ */
+export const neonTesting = neonTestingVite;
