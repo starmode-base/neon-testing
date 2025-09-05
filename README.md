@@ -3,6 +3,7 @@
 [![Integration tests](https://github.com/starmode-base/neon-testing/actions/workflows/test.yml/badge.svg)](https://github.com/starmode-base/neon-testing/actions/workflows/test.yml)
 [![npm version](https://img.shields.io/npm/v/neon-testing)](https://www.npmjs.com/package/neon-testing)
 [![GitHub release](https://img.shields.io/github/v/release/starmode-base/neon-testing)](https://github.com/starmode-base/neon-testing/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue)](https://opensource.org/licenses/MIT)
 
 A [Vitest](https://vitest.dev/) utility for seamless integration tests with [Neon Postgres](https://neon.com/). <!-- A [STΛR MODΞ](https://starmode.dev) open-source project. -->
 
@@ -82,7 +83,7 @@ First, add the Vite plugin to clear any existing `DATABASE_URL` environment vari
 ```ts
 // vitest.config.ts
 import { defineConfig } from "vitest/config";
-import { neonTesting } from "neon-testing/utils";
+import { neonTesting } from "neon-testing/vite";
 
 export default defineConfig({
   plugins: [neonTesting()],
