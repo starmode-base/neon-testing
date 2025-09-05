@@ -1,6 +1,9 @@
 import { fileURLToPath } from "node:url";
 import type { Plugin } from "vite";
 
+/**
+ * Neon Testing Vite plugin
+ */
 export function neonTesting(
   options: {
     /**
