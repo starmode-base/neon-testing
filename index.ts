@@ -184,7 +184,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
 
     beforeAll(async () => {
       process.env.DATABASE_URL = await withRetry(createBranch, {
-        maxRetries: 5,
+        maxRetries: 8,
         baseDelayMs: 1000,
       });
 
