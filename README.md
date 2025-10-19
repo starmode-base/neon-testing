@@ -290,7 +290,10 @@ Create a free Neon project at [neon.com](https://neon.com/) to test with.
 To make a new release, run:
 
 ```sh
-bun run release
+bun run release:patch
+bun run release:minor
+bun run release:major
+bun run release:beta
 ```
 
 The command will abort if there are uncommitted changes in the working tree, or if the `version` in [package.json](package.json) has not been incremented.
