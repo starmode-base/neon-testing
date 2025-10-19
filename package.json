@@ -47,6 +47,7 @@
     "@neondatabase/api-client": "^2.2.0"
   },
   "peerDependencies": {
+    "vite": "^7",
     "vitest": "^3"
   },
   "devDependencies": {
