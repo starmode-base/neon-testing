@@ -34,8 +34,10 @@
   "scripts": {
     "dev": "tsc --watch",
     "build": "rm -rf dist && tsc",
-    "test": "vitest",
     "format": "prettier --write .",
+    "test": "vitest",
+    "clean:soft": "rm -rf node_modules dist && bun install",
+    "clean:hard": "rm -rf node_modules dist bun.lock && bun install",
     "check": "bun run build && bunx vitest run && bunx prettier --check .",
     "release:patch": "bun run check && bun pm version patch && bun publish --tag latest",
     "release:minor": "bun run check && bun pm version minor && bun publish --tag latest",
