@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url";
-import type { Plugin } from "vitest/config";
+import type { Plugin } from "vite";
 
 /**
  * Neon Testing Vite plugin
