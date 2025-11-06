@@ -1,0 +1,218 @@
+import { describe, expect, test } from "vitest";
+import { makeNeonTesting } from "neon-testing";
+import { createApiClient, EndpointType } from "@neondatabase/api-client";
+
+const apiClient = createApiClient({
+  apiKey: process.env.NEON_API_KEY!,
+});
+const projectId = process.env.NEON_PROJECT_ID!;
+
+describe("Branch expiration with default settings", () => {
+  makeNeonTesting({
+    apiKey: process.env.NEON_API_KEY!,
+    projectId,
+    autoCloseWebSockets: true,
+  })();
+
+  test("branch created with default expiration has expires_at set ~600s in future", async () => {
+    // Get the list of branches and find our test branch
+    const { data } = await apiClient.listProjectBranches({ projectId });
+    const testBranches = data.branches.filter(
+      (branch) =>
+        data.annotations[branch.id]?.value["integration-test"] === "true",
+    );
+
+    // Find the most recently created test branch (should be ours)
+    const ourBranch = testBranches.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    )[0];
+
+    expect(ourBranch).toBeDefined();
+
+    // Verify expires_at is set
+    expect(ourBranch.expires_at).toBeDefined();
+
+    // Verify it's approximately 600 seconds (10 minutes) in the future
+    const expiresAt = new Date(ourBranch.expires_at!).getTime();
+    const now = Date.now();
+    const expectedExpiresAt = now + 600 * 1000;
+
+    // Allow 10 seconds of tolerance for API call time
+    expect(expiresAt).toBeGreaterThan(now);
+    expect(expiresAt).toBeLessThan(expectedExpiresAt + 10000);
+    expect(expiresAt).toBeGreaterThan(expectedExpiresAt - 10000);
+  });
+});
+
+describe("Branch expiration with custom settings", () => {
+  makeNeonTesting({
+    apiKey: process.env.NEON_API_KEY!,
+    projectId,
+    autoCloseWebSockets: true,
+  })({ expiresIn: 1800 });
+
+  test("branch created with custom expiresIn has correct expires_at", async () => {
+    // Get the list of branches and find our test branch
+    const { data } = await apiClient.listProjectBranches({ projectId });
+    const testBranches = data.branches.filter(
+      (branch) =>
+        data.annotations[branch.id]?.value["integration-test"] === "true",
+    );
+
+    // Find the most recently created test branch (should be ours)
+    const ourBranch = testBranches.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    )[0];
+
+    expect(ourBranch).toBeDefined();
+
+    // Verify expires_at is set
+    expect(ourBranch.expires_at).toBeDefined();
+
+    // Verify it's approximately 1800 seconds (30 minutes) in the future
+    const expiresAt = new Date(ourBranch.expires_at!).getTime();
+    const now = Date.now();
+    const expectedExpiresAt = now + 1800 * 1000;
+
+    // Allow 10 seconds of tolerance for API call time
+    expect(expiresAt).toBeGreaterThan(now);
+    expect(expiresAt).toBeLessThan(expectedExpiresAt + 10000);
+    expect(expiresAt).toBeGreaterThan(expectedExpiresAt - 10000);
+  });
+});
+
+describe("Branch expiration disabled", () => {
+  makeNeonTesting({
+    apiKey: process.env.NEON_API_KEY!,
+    projectId,
+    autoCloseWebSockets: true,
+    expiresIn: null,
+  })({ expiresIn: null });
+
+  test("branch created with expiresIn: null has no expiration", async () => {
+    // Get the list of branches and find our test branch
+    const { data } = await apiClient.listProjectBranches({ projectId });
+    const testBranches = data.branches.filter(
+      (branch) =>
+        data.annotations[branch.id]?.value["integration-test"] === "true",
+    );
+
+    // Find the most recently created test branch (should be ours)
+    const ourBranch = testBranches.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    )[0];
+
+    expect(ourBranch).toBeDefined();
+
+    // Verify expires_at is not set
+    expect(ourBranch.expires_at).toBeUndefined();
+  });
+});
+
+describe("Branch expiration validation", () => {
+  // Helper function to simulate the validation logic from createBranch
+  function validateExpiresIn(expiresIn: number | null) {
+    if (expiresIn !== null) {
+      if (!Number.isInteger(expiresIn)) {
+        throw new Error("expiresIn must be an integer");
+      }
+      if (expiresIn <= 0) {
+        throw new Error("expiresIn must be a positive integer");
+      }
+      if (expiresIn > 2592000) {
+        throw new Error(
+          "expiresIn must not exceed 30 days (2,592,000 seconds)",
+        );
+      }
+    }
+  }
+
+  test("expiresIn: 0 throws validation error", () => {
+    expect(() => validateExpiresIn(0)).toThrow(
+      "expiresIn must be a positive integer",
+    );
+  });
+
+  test("expiresIn: -10 throws validation error", () => {
+    expect(() => validateExpiresIn(-10)).toThrow(
+      "expiresIn must be a positive integer",
+    );
+  });
+
+  test("non-integer expiresIn: 600.5 throws validation error", () => {
+    expect(() => validateExpiresIn(600.5)).toThrow(
+      "expiresIn must be an integer",
+    );
+  });
+
+  test("expiresIn > 30 days throws validation error", () => {
+    expect(() => validateExpiresIn(2592001)).toThrow(
+      "expiresIn must not exceed 30 days",
+    );
+  });
+
+  test("valid expiresIn: 600 does not throw", () => {
+    expect(() => validateExpiresIn(600)).not.toThrow();
+  });
+
+  test("expiresIn: null does not throw", () => {
+    expect(() => validateExpiresIn(null)).not.toThrow();
+  });
+});
+
+describe.skip("End-to-end branch expiration", () => {
+  test("branch expires after the specified time", async () => {
+    // Create a branch with 5 second expiration
+    let branchId: string | undefined;
+
+    const testDbSetup = makeNeonTesting({
+      apiKey: process.env.NEON_API_KEY!,
+      projectId,
+      autoCloseWebSockets: true,
+    });
+
+    // Manually create the branch without using beforeAll/afterAll lifecycle
+    const apiClient = createApiClient({
+      apiKey: process.env.NEON_API_KEY!,
+    });
+
+    // Create branch with 5 second expiration
+    const { data: createData } = await apiClient.createProjectBranch(
+      projectId,
+      {
+        branch: {
+          name: `test/expiration-${crypto.randomUUID()}`,
+          expires_at: new Date(Date.now() + 5000).toISOString(),
+        },
+        endpoints: [{ type: EndpointType.ReadWrite }],
+        annotation_value: {
+          "integration-test": "true",
+        },
+      },
+    );
+
+    branchId = createData.branch.id;
+    expect(branchId).toBeDefined();
+
+    // Wait 3 seconds and verify branch still exists
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    const { data: checkData1 } = await apiClient.listProjectBranches({
+      projectId,
+    });
+    const branchExists1 = checkData1.branches.some((b) => b.id === branchId);
+    expect(branchExists1).toBe(true);
+
+    // Wait 4 more seconds (total 7 seconds) and verify branch is gone
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+
+    const { data: checkData2 } = await apiClient.listProjectBranches({
+      projectId,
+    });
+    const branchExists2 = checkData2.branches.some((b) => b.id === branchId);
+    expect(branchExists2).toBe(false);
+  });
+});

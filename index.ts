@@ -70,6 +70,18 @@ export interface NeonTestingOptions {
    * connections
    */
   autoCloseWebSockets?: boolean;
+  /**
+   * Time in seconds until the branch expires and is automatically deleted
+   * (default: 600 = 10 minutes)
+   *
+   * This provides automatic cleanup for dangling branches from interrupted or
+   * failed test runs. Set to `null` to disable automatic expiration.
+   *
+   * Must be a positive integer. Maximum 30 days (2,592,000 seconds).
+   *
+   * https://neon.com/docs/guides/branch-expiration
+   */
+  expiresIn?: number | null;
 }
 
 /** Options for overriding test database setup (excludes apiKey) */
@@ -147,11 +159,38 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
      * @returns The connection URI for the new branch
      */
     async function createBranch() {
+      // Calculate expiration timestamp if expiresIn is set
+      const expiresIn =
+        options.expiresIn === undefined ? 600 : options.expiresIn; // Default: 10 minutes
+
+      let expiresAt: string | undefined;
+
+      if (expiresIn !== null) {
+        // Validate expiresIn
+        if (!Number.isInteger(expiresIn)) {
+          throw new Error("expiresIn must be an integer");
+        }
+
+        if (expiresIn <= 0) {
+          throw new Error("expiresIn must be a positive integer");
+        }
+
+        if (expiresIn > 2592000) {
+          throw new Error(
+            "expiresIn must not exceed 30 days (2,592,000 seconds)",
+          );
+        }
+
+        // Calculate expiration timestamp
+        expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
+      }
+
       const { data } = await apiClient.createProjectBranch(options.projectId, {
         branch: {
           name: `test/${crypto.randomUUID()}`,
           parent_id: options.parentBranchId,
           init_source: options.schemaOnly ? "schema-only" : undefined,
+          expires_at: expiresAt,
         },
         endpoints: [{ type: EndpointType.ReadWrite }],
         annotation_value: {

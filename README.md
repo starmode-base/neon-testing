@@ -203,10 +203,22 @@ export interface NeonTestingOptions {
    * connections
    */
   autoCloseWebSockets?: boolean;
+  /**
+   * Time in seconds until the branch expires and is automatically deleted
+   * (default: 600 = 10 minutes)
+   *
+   * This provides automatic cleanup for dangling branches from interrupted or
+   * failed test runs. Set to `null` to disable automatic expiration.
+   *
+   * Must be a positive integer. Maximum 30 days (2,592,000 seconds).
+   *
+   * https://neon.com/docs/guides/branch-expiration
+   */
+  expiresIn?: number | null;
 }
 ```
 
-See all available options in [NeonTestingOptions](index.ts#L31-L73).
+See all available options in [NeonTestingOptions](index.ts#L31-L85).
 
 ### Base configuration
 
@@ -230,6 +242,22 @@ import { withNeonTestBranch } from "./test-setup";
 
 withNeonTestBranch({ parentBranchId: "br-staging-123" });
 ```
+
+### Branch expiration
+
+By default, test branches expire automatically after 10 minutes (600 seconds). This provides automatic cleanup for dangling branches from interrupted or failed test runs, minimizing costs.
+
+You can customize the expiration time or disable it:
+
+```ts
+// Extend expiration to 1 hour for debugging
+withNeonTestBranch({ expiresIn: 3600 });
+
+// Disable automatic expiration
+withNeonTestBranch({ expiresIn: null });
+```
+
+Learn more about [Neon branch expiration](https://neon.com/docs/guides/branch-expiration).
 
 ## Continuous integration
 
