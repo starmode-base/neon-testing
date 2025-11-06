@@ -55,14 +55,14 @@
   "devDependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "dotenv": "^17.2.3",
-    "drizzle-orm": "^0.44.6",
+    "drizzle-orm": "^0.44.7",
     "pg": "^8.16.3",
     "postgres": "^3.4.7",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",
-    "vite": "^7.1.12",
+    "vite": "^7.2.1",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.0.1"
+    "vitest": "^4.0.7"
   },
   "browser": {
     "./dist/vite-plugin.js": "./dist/browser-empty.js"
