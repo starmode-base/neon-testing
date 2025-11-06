@@ -1,22 +1,18 @@
 import { describe, expect, test } from "vitest";
-import { makeNeonTesting } from "neon-testing";
 import { createApiClient, EndpointType } from "@neondatabase/api-client";
+import { withNeonTestBranch } from "./test-setup";
 
-const apiClient = createApiClient({
-  apiKey: process.env.NEON_API_KEY!,
-});
 const projectId = process.env.NEON_PROJECT_ID!;
 
 describe("Branch expiration with default settings", () => {
-  makeNeonTesting({
-    apiKey: process.env.NEON_API_KEY!,
-    projectId,
-    autoCloseWebSockets: true,
-  })();
+  withNeonTestBranch();
 
   test("branch created with default expiration has expires_at set ~600s in future", async () => {
     // Get the list of branches and find our test branch
-    const { data } = await apiClient.listProjectBranches({ projectId });
+    const { data } = await withNeonTestBranch.api.listProjectBranches({
+      projectId,
+    });
+
     const testBranches = data.branches.filter(
       (branch) =>
         data.annotations[branch.id]?.value["integration-test"] === "true",
@@ -31,10 +27,10 @@ describe("Branch expiration with default settings", () => {
     expect(ourBranch).toBeDefined();
 
     // Verify expires_at is set
-    expect(ourBranch.expires_at).toBeDefined();
+    expect(ourBranch?.expires_at).toBeDefined();
 
     // Verify it's approximately 600 seconds (10 minutes) in the future
-    const expiresAt = new Date(ourBranch.expires_at!).getTime();
+    const expiresAt = new Date(ourBranch?.expires_at!).getTime();
     const now = Date.now();
     const expectedExpiresAt = now + 600 * 1000;
 
@@ -46,15 +42,15 @@ describe("Branch expiration with default settings", () => {
 });
 
 describe("Branch expiration with custom settings", () => {
-  makeNeonTesting({
-    apiKey: process.env.NEON_API_KEY!,
-    projectId,
-    autoCloseWebSockets: true,
-  })({ expiresIn: 1800 });
+  withNeonTestBranch({
+    expiresIn: 1800,
+  });
 
   test("branch created with custom expiresIn has correct expires_at", async () => {
     // Get the list of branches and find our test branch
-    const { data } = await apiClient.listProjectBranches({ projectId });
+    const { data } = await withNeonTestBranch.api.listProjectBranches({
+      projectId,
+    });
     const testBranches = data.branches.filter(
       (branch) =>
         data.annotations[branch.id]?.value["integration-test"] === "true",
@@ -69,10 +65,10 @@ describe("Branch expiration with custom settings", () => {
     expect(ourBranch).toBeDefined();
 
     // Verify expires_at is set
-    expect(ourBranch.expires_at).toBeDefined();
+    expect(ourBranch?.expires_at).toBeDefined();
 
     // Verify it's approximately 1800 seconds (30 minutes) in the future
-    const expiresAt = new Date(ourBranch.expires_at!).getTime();
+    const expiresAt = new Date(ourBranch?.expires_at!).getTime();
     const now = Date.now();
     const expectedExpiresAt = now + 1800 * 1000;
 
@@ -84,16 +80,15 @@ describe("Branch expiration with custom settings", () => {
 });
 
 describe("Branch expiration disabled", () => {
-  makeNeonTesting({
-    apiKey: process.env.NEON_API_KEY!,
-    projectId,
-    autoCloseWebSockets: true,
+  withNeonTestBranch({
     expiresIn: null,
-  })({ expiresIn: null });
+  });
 
   test("branch created with expiresIn: null has no expiration", async () => {
     // Get the list of branches and find our test branch
-    const { data } = await apiClient.listProjectBranches({ projectId });
+    const { data } = await withNeonTestBranch.api.listProjectBranches({
+      projectId,
+    });
     const testBranches = data.branches.filter(
       (branch) =>
         data.annotations[branch.id]?.value["integration-test"] === "true",
@@ -108,7 +103,7 @@ describe("Branch expiration disabled", () => {
     expect(ourBranch).toBeDefined();
 
     // Verify expires_at is not set
-    expect(ourBranch.expires_at).toBeUndefined();
+    expect(ourBranch?.expires_at).toBeUndefined();
   });
 });
 
@@ -168,11 +163,7 @@ describe.skip("End-to-end branch expiration", () => {
     // Create a branch with 5 second expiration
     let branchId: string | undefined;
 
-    const testDbSetup = makeNeonTesting({
-      apiKey: process.env.NEON_API_KEY!,
-      projectId,
-      autoCloseWebSockets: true,
-    });
+    withNeonTestBranch();
 
     // Manually create the branch without using beforeAll/afterAll lifecycle
     const apiClient = createApiClient({

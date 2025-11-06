@@ -252,8 +252,9 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     });
   };
 
-  // Attach the utility
+  // Attach utilities
   testDbSetup.deleteAllTestBranches = deleteAllTestBranches;
+  testDbSetup.api = apiClient;
 
   return testDbSetup;
 }
