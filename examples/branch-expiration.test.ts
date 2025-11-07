@@ -2,8 +2,6 @@ import { describe, expect, test } from "vitest";
 import { neonTesting } from "./test-setup";
 import invariant from "tiny-invariant";
 
-const projectId = process.env.NEON_PROJECT_ID!;
-
 describe("Branch expiration with default settings", () => {
   const getBranch = neonTesting();
 
@@ -15,7 +13,7 @@ describe("Branch expiration with default settings", () => {
     // Verify the expires_at matches what Neon API returns
     // https://api-docs.neon.tech/reference/getprojectbranch
     const { data } = await neonTesting.api.getProjectBranch(
-      projectId,
+      branch.project_id,
       branch.id,
     );
     expect(data.branch?.expires_at).toBe(branch.expires_at);
@@ -45,7 +43,7 @@ describe("Branch expiration with custom settings", () => {
     // Verify the expires_at matches what Neon API returns
     // https://api-docs.neon.tech/reference/getprojectbranch
     const { data } = await neonTesting.api.getProjectBranch(
-      projectId,
+      branch.project_id,
       branch.id,
     );
     expect(data.branch?.expires_at).toBe(branch.expires_at);
@@ -74,7 +72,7 @@ describe("Branch expiration disabled", () => {
     // Verify the expires_at matches what Neon API returns (both should be undefined)
     // https://api-docs.neon.tech/reference/getprojectbranch
     const { data } = await neonTesting.api.getProjectBranch(
-      projectId,
+      branch.project_id,
       branch.id,
     );
     expect(branch.expires_at).toBeUndefined();
