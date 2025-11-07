@@ -29,6 +29,25 @@ function createConnectionUri(
   return `postgresql://${role}:${password}@${hostname}/${database}?sslmode=require`;
 }
 
+/**
+ * Validates the expiresIn option
+ */
+function validateExpiresIn(expiresIn: number | null | undefined) {
+  if (expiresIn !== null && expiresIn !== undefined) {
+    if (!Number.isInteger(expiresIn)) {
+      throw new Error("expiresIn must be an integer");
+    }
+
+    if (expiresIn <= 0) {
+      throw new Error("expiresIn must be a positive integer");
+    }
+
+    if (expiresIn > 2592000) {
+      throw new Error("expiresIn must not exceed 30 days (2,592,000 seconds)");
+    }
+  }
+}
+
 export interface NeonTestingOptions {
   /**
    * The Neon API key, this is used to create and teardown test branches
@@ -87,25 +106,6 @@ export interface NeonTestingOptions {
 
 /** Options for overriding test database setup (excludes apiKey) */
 export type NeonTestingOverrides = Omit<Partial<NeonTestingOptions>, "apiKey">;
-
-/**
- * Validates the expiresIn option
- */
-function validateExpiresIn(expiresIn: number | null | undefined) {
-  if (expiresIn !== null && expiresIn !== undefined) {
-    if (!Number.isInteger(expiresIn)) {
-      throw new Error("expiresIn must be an integer");
-    }
-
-    if (expiresIn <= 0) {
-      throw new Error("expiresIn must be a positive integer");
-    }
-
-    if (expiresIn > 2592000) {
-      throw new Error("expiresIn must not exceed 30 days (2,592,000 seconds)");
-    }
-  }
-}
 
 /**
  * Factory function that creates a Neon test database setup/teardown function
