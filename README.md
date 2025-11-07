@@ -61,8 +61,8 @@ import { Pool } from "@neondatabase/serverless";
 
 // Enable Neon test branch for this test file
 makeNeonTesting({
-  apiKey: "apiKey",
-  projectId: "projectId",
+  apiKey: process.env.NEON_API_KEY!,
+  projectId: process.env.NEON_PROJECT_ID!,
   // Recommended for Neon WebSocket drivers to automatically close connections
   autoCloseWebSockets: true,
 })();
@@ -77,6 +77,8 @@ test("database operations", async () => {
   expect(users.rows).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
 });
 ```
+
+Source: [`examples/minimal.test.ts`](examples/minimal.test.ts)
 
 ### Recommended usage
 
@@ -106,10 +108,12 @@ import { makeNeonTesting } from "neon-testing";
 
 // Export a configured lifecycle function to use in test files
 export const neonTesting = makeNeonTesting({
-  apiKey: "apiKey",
-  projectId: "projectId",
+  apiKey: process.env.NEON_API_KEY!,
+  projectId: process.env.NEON_PROJECT_ID!,
 });
 ```
+
+Source: [`examples/neon-testing.ts`](examples/neon-testing.ts)
 
 #### 3. Enable database testing
 
@@ -137,6 +141,8 @@ test("database operations", async () => {
   expect(users.rows).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
 });
 ```
+
+Source: [`examples/recommended.test.ts`](examples/recommended.test.ts)
 
 ## Drivers
 
@@ -230,8 +236,8 @@ Configure the base settings in `makeNeonTesting()`:
 import { makeNeonTesting } from "neon-testing";
 
 export const neonTesting = makeNeonTesting({
-  apiKey: "apiKey",
-  projectId: "projectId",
+  apiKey: process.env.NEON_API_KEY!,
+  projectId: process.env.NEON_PROJECT_ID!,
 });
 ```
 
@@ -242,7 +248,9 @@ Override the base configuration in specific test files when calling the function
 ```ts
 import { neonTesting } from "./neon-testing";
 
-neonTesting({ parentBranchId: "br-staging-123" });
+neonTesting({
+  parentBranchId: "br-staging-123",
+});
 ```
 
 ## Continuous integration
