@@ -1,11 +1,12 @@
 import { describe, expect, test } from "vitest";
 import { createApiClient, EndpointType } from "@neondatabase/api-client";
-import { withNeonTestBranch } from "./test-setup";
+import { neonTesting } from "./test-setup";
+import invariant from "tiny-invariant";
 
 const projectId = process.env.NEON_PROJECT_ID!;
 
 describe("Branch expiration with default settings", () => {
-  const getBranch = withNeonTestBranch();
+  const getBranch = neonTesting();
 
   test("branch created with default expiration has expires_at set ~600s in future", async () => {
     const branch = getBranch();
@@ -26,33 +27,19 @@ describe("Branch expiration with default settings", () => {
 });
 
 describe("Branch expiration with custom settings", () => {
-  withNeonTestBranch({
+  const getBranch = neonTesting({
     expiresIn: 1800,
   });
 
   test("branch created with custom expiresIn has correct expires_at", async () => {
-    // Get the list of branches and find our test branch
-    const { data } = await withNeonTestBranch.api.listProjectBranches({
-      projectId,
-    });
-    const testBranches = data.branches.filter(
-      (branch) =>
-        data.annotations[branch.id]?.value["integration-test"] === "true",
-    );
-
-    // Find the most recently created test branch (should be ours)
-    const ourBranch = testBranches.sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    )[0];
-
-    expect(ourBranch).toBeDefined();
+    const branch = getBranch();
+    invariant(branch, "Branch not found");
 
     // Verify expires_at is set
-    expect(ourBranch?.expires_at).toBeDefined();
+    expect(branch.expires_at).toBeDefined();
 
     // Verify it's approximately 1800 seconds (30 minutes) in the future
-    const expiresAt = new Date(ourBranch?.expires_at!).getTime();
+    const expiresAt = new Date(branch.expires_at!).getTime();
     const now = Date.now();
     const expectedExpiresAt = now + 1800 * 1000;
 
@@ -64,30 +51,24 @@ describe("Branch expiration with custom settings", () => {
 });
 
 describe("Branch expiration disabled", () => {
-  withNeonTestBranch({
+  const getBranch = neonTesting({
     expiresIn: null,
   });
 
   test("branch created with expiresIn: null has no expiration", async () => {
+    const branch = getBranch();
+    invariant(branch, "Branch not found");
+
     // Get the list of branches and find our test branch
-    const { data } = await withNeonTestBranch.api.listProjectBranches({
+    const { data } = await neonTesting.api.getProjectBranch(
       projectId,
-    });
-    const testBranches = data.branches.filter(
-      (branch) =>
-        data.annotations[branch.id]?.value["integration-test"] === "true",
+      branch.id,
     );
 
-    // Find the most recently created test branch (should be ours)
-    const ourBranch = testBranches.sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    )[0];
-
-    expect(ourBranch).toBeDefined();
+    expect(data.branch).toBeDefined();
 
     // Verify expires_at is not set
-    expect(ourBranch?.expires_at).toBeUndefined();
+    expect(data.branch?.expires_at).toBeUndefined();
   });
 });
 
@@ -147,7 +128,7 @@ describe.skip("End-to-end branch expiration", () => {
     // Create a branch with 5 second expiration
     let branchId: string | undefined;
 
-    withNeonTestBranch();
+    neonTesting();
 
     // Manually create the branch without using beforeAll/afterAll lifecycle
     const apiClient = createApiClient({

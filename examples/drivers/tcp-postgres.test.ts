@@ -10,14 +10,14 @@
  * https://www.npmjs.com/package/postgres
  */
 import { describe, expect, test } from "vitest";
-import { withNeonTestBranch } from "../test-setup";
+import { neonTesting } from "../test-setup";
 import postgres from "postgres";
 import { lazySingleton } from "neon-testing/utils";
 
 const endpoints = ["pooler", "direct"] as const;
 
 describe.each(endpoints)("Postgres.js (%s)", (endpoint) => {
-  withNeonTestBranch({ endpoint });
+  neonTesting({ endpoint });
 
   const sql = lazySingleton(() => postgres(process.env.DATABASE_URL!));
 

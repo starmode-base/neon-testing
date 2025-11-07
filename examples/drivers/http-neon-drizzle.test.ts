@@ -13,7 +13,7 @@
  * https://orm.drizzle.team/docs/connect-neon
  */
 import { describe, expect, test } from "vitest";
-import { withNeonTestBranch } from "../test-setup";
+import { neonTesting } from "../test-setup";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { lazySingleton } from "neon-testing/utils";
@@ -26,7 +26,7 @@ const cases = [
 ] as const;
 
 describe.each(cases)("Drizzle Neon HTTP (%s)", (endpoint, makeDb) => {
-  withNeonTestBranch({ endpoint });
+  neonTesting({ endpoint });
 
   const db = lazySingleton(() => makeDb(process.env.DATABASE_URL!));
 

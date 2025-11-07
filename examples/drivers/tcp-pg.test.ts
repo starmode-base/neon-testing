@@ -10,13 +10,13 @@
  * https://www.npmjs.com/package/pg
  */
 import { describe, expect, test } from "vitest";
-import { withNeonTestBranch } from "../test-setup";
+import { neonTesting } from "../test-setup";
 import { Pool } from "pg";
 
 const endpoints = ["pooler", "direct"] as const;
 
 describe.each(endpoints)("node-postgres (%s)", (endpoint) => {
-  withNeonTestBranch({ endpoint });
+  neonTesting({ endpoint });
 
   test("create table", async () => {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL! });

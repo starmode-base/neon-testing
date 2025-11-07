@@ -4,10 +4,10 @@
  * This file contains a few ways to isolate tests within a file
  */
 import { describe, beforeEach, expect, test } from "vitest";
-import { withNeonTestBranch } from "./test-setup";
+import { neonTesting } from "./test-setup";
 import { neon } from "@neondatabase/serverless";
 
-withNeonTestBranch();
+neonTesting();
 
 /**
  * Drop the Postgres schema before each test
