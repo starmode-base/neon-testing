@@ -12,7 +12,7 @@
  * https://orm.drizzle.team/docs/get-started-postgresql#postgresjs
  */
 import { describe, expect, test } from "vitest";
-import { withNeonTestBranch } from "../test-setup";
+import { neonTesting } from "../neon-testing";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { lazySingleton } from "neon-testing/utils";
@@ -25,7 +25,7 @@ const cases = [
 ] as const;
 
 describe.each(cases)("Drizzle Postgres.js (%s)", (endpoint, makeDb) => {
-  withNeonTestBranch({ endpoint });
+  neonTesting({ endpoint });
 
   const db = lazySingleton(() => makeDb(process.env.DATABASE_URL!));
 

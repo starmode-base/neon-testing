@@ -10,7 +10,7 @@
  * https://www.npmjs.com/package/@neondatabase/serverless
  */
 import { describe, expect, test } from "vitest";
-import { withNeonTestBranch } from "../test-setup";
+import { neonTesting } from "../neon-testing";
 import { Pool } from "@neondatabase/serverless";
 
 const cases = [
@@ -37,7 +37,7 @@ const cases = [
 ] as const;
 
 describe.each(cases)("Neon WebSocket (%s)", (endpoint, makeDb) => {
-  withNeonTestBranch({ endpoint, autoCloseWebSockets: true });
+  neonTesting({ endpoint, autoCloseWebSockets: true });
 
   test("create table", async () => {
     const { end, sql } = makeDb(process.env.DATABASE_URL!);

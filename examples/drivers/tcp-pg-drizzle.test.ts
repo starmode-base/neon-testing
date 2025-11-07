@@ -12,7 +12,7 @@
  * https://orm.drizzle.team/docs/get-started-postgresql#postgresjs
  */
 import { describe, expect, test } from "vitest";
-import { withNeonTestBranch } from "../test-setup";
+import { neonTesting } from "../neon-testing";
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 
@@ -30,7 +30,7 @@ const cases = [
 ] as const;
 
 describe.each(cases)("node-postgres (%s)", (endpoint, makeDb) => {
-  withNeonTestBranch({ endpoint });
+  neonTesting({ endpoint });
 
   test("create table", async () => {
     const pool = makeDb(process.env.DATABASE_URL!);

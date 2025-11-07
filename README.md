@@ -28,11 +28,13 @@ Each test file runs against its own isolated PostgreSQL database (Neon branch), 
 
 ### Test isolation
 
-Tests in the same file share a single database instance (Neon branch). This means test files are fully isolated from each other, but individual tests within a file are intentionally not isolated.
-
-This works because Vitest runs test files in [parallel](https://vitest.dev/guide/parallelism.html), while tests within each file run sequentially.
+Tests in the same file share a single database instance (Neon branch). This means test files are fully isolated from each other, but individual tests within a file are intentionally not isolated. This works because Vitest runs test files in [parallel](https://vitest.dev/guide/parallelism.html), while tests within each file run sequentially.
 
 If you prefer individual tests to be isolated, you can [reset the database](examples/isolated.test.ts) in a `beforeEach` lifecycle hook.
+
+### Automatic cleanup
+
+Test branches are automatically deleted after your tests complete. As a safety net, branches also expire after 10 minutes by default to handle interrupted or failed test runs. This dual approach minimizes costs while protecting against edge cases like crashed processes or CI failures. Both behaviors can be customized through the `deleteBranch` and `expiresIn` options.
 
 ## Quick start
 
@@ -57,8 +59,8 @@ import { Pool } from "@neondatabase/serverless";
 
 // Enable Neon test branch for this test file
 makeNeonTesting({
-  apiKey: "apiKey",
-  projectId: "projectId",
+  apiKey: process.env.NEON_API_KEY!,
+  projectId: process.env.NEON_PROJECT_ID!,
   // Recommended for Neon WebSocket drivers to automatically close connections
   autoCloseWebSockets: true,
 })();
@@ -73,6 +75,8 @@ test("database operations", async () => {
   expect(users.rows).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
 });
 ```
+
+Source: [`examples/minimal.test.ts`](examples/minimal.test.ts)
 
 ### Recommended usage
 
@@ -90,22 +94,24 @@ export default defineConfig({
 });
 ```
 
-This plugin is recommended but not required. Without it, tests might accidentally use your existing `DATABASE_URL` (from `.env` files or environment variables) instead of the isolated test databases that Neon Testing creates. This can happen if you forget to call `withNeonTestBranch()` in a test file where database writes happen.
+This plugin is recommended but not required. Without it, tests might accidentally use your existing `DATABASE_URL` (from `.env` files or environment variables) instead of the isolated test databases that Neon Testing creates. This can happen if you forget to call `neonTesting()` in a test file where database writes happen.
 
 #### 2. Configuration
 
 Use the `makeNeonTesting` factory to generate a lifecycle function for your tests.
 
 ```ts
-// test-setup.ts
+// neon-testing.ts
 import { makeNeonTesting } from "neon-testing";
 
 // Export a configured lifecycle function to use in test files
-export const withNeonTestBranch = makeNeonTesting({
-  apiKey: "apiKey",
-  projectId: "projectId",
+export const neonTesting = makeNeonTesting({
+  apiKey: process.env.NEON_API_KEY!,
+  projectId: process.env.NEON_PROJECT_ID!,
 });
 ```
+
+Source: [`examples/neon-testing.ts`](examples/neon-testing.ts)
 
 #### 3. Enable database testing
 
@@ -114,11 +120,11 @@ Then call the exported test lifecycle function in the test files where you need 
 ```ts
 // recommended.test.ts
 import { expect, test } from "vitest";
-import { withNeonTestBranch } from "./test-setup";
+import { neonTesting } from "./neon-testing";
 import { Pool } from "@neondatabase/serverless";
 
 // Enable Neon test branch for this test file
-withNeonTestBranch({
+neonTesting({
   // Recommended for Neon WebSocket drivers to automatically close connections
   autoCloseWebSockets: true,
 });
@@ -134,11 +140,13 @@ test("database operations", async () => {
 });
 ```
 
+Source: [`examples/recommended.test.ts`](examples/recommended.test.ts)
+
 ## Drivers
 
 This library works with any database driver that supports Neon Postgres and Vitest. The examples below demonstrate connection management, transaction support, and test isolation patterns for some popular drivers.
 
-**IMPORTANT:** For [Neon WebSocket drivers](https://neon.com/docs/serverless/serverless-driver), enable `autoCloseWebSockets` in your `makeNeonTesting()` or `withNeonTestBranch()` configuration. This automatically closes WebSocket connections when deleting test branches, preventing connection termination errors.
+**IMPORTANT:** For [Neon WebSocket drivers](https://neon.com/docs/serverless/serverless-driver), enable `autoCloseWebSockets` in your `makeNeonTesting()` or `neonTesting()` configuration. This automatically closes WebSocket connections when deleting test branches, preventing connection termination errors.
 
 ### Examples
 
@@ -156,9 +164,9 @@ This library works with any database driver that supports Neon Postgres and Vite
 You configure Neon Testing in two places:
 
 - **Base settings** in `makeNeonTesting()`
-- **Optional overrides** in `withNeonTestBranch()`
+- **Optional overrides** when calling the returned function (e.g., `neonTesting()`)
 
-Configure these in `makeNeonTesting()` and optionally override per test file via `withNeonTestBranch()`.
+Configure these in `makeNeonTesting()` and optionally override per test file when calling the returned function.
 
 ```ts
 export interface NeonTestingOptions {
@@ -203,32 +211,45 @@ export interface NeonTestingOptions {
    * connections
    */
   autoCloseWebSockets?: boolean;
+  /**
+   * Time in seconds until the branch expires and is automatically deleted
+   * (default: 600 = 10 minutes)
+   *
+   * This provides automatic cleanup for dangling branches from interrupted or
+   * failed test runs. Set to `null` to disable automatic expiration.
+   *
+   * Must be a positive integer. Maximum 30 days (2,592,000 seconds).
+   *
+   * https://neon.com/docs/guides/branch-expiration
+   */
+  expiresIn?: number | null;
 }
 ```
-
-See all available options in [NeonTestingOptions](index.ts#L31-L73).
 
 ### Base configuration
 
 Configure the base settings in `makeNeonTesting()`:
 
 ```ts
+// neon-testing.ts
 import { makeNeonTesting } from "neon-testing";
 
-export const withNeonTestBranch = makeNeonTesting({
-  apiKey: "apiKey",
-  projectId: "projectId",
+export const neonTesting = makeNeonTesting({
+  apiKey: process.env.NEON_API_KEY!,
+  projectId: process.env.NEON_PROJECT_ID!,
 });
 ```
 
 ### Override configuration
 
-Override the base configuration in specific test files with `withNeonTestBranch()`:
+Override the base configuration in specific test files when calling the function:
 
 ```ts
-import { withNeonTestBranch } from "./test-setup";
+import { neonTesting } from "./neon-testing";
 
-withNeonTestBranch({ parentBranchId: "br-staging-123" });
+neonTesting({
+  parentBranchId: "br-staging-123",
+});
 ```
 
 ## Continuous integration
@@ -240,24 +261,93 @@ It's easy to run Neon integration tests in CI/CD pipelines:
   - add `vitest run` to the `build` script in [package.json](https://github.com/starmode-base/template-tanstack-start/blob/83c784e164b55fd8d59c5b57b907251e5eb03de1/app/package.json#L11), or
   - add `vitest run` to the _Build Command_ in the Vercel dashboard
 
-## Utilities
+## API Reference
 
-### deleteAllTestBranches()
+### Main exports (`neon-testing`)
 
-The `deleteAllTestBranches()` function is a utility that deletes all test branches from your Neon project. This is useful for cleanup when tests fail unexpectedly and leave orphaned test branches.
+#### makeNeonTesting(options)
+
+The factory function that creates a configured lifecycle function for your tests. See [Configuration](#configuration) for available options.
 
 ```ts
-import { withNeonTestBranch } from "./test-setup";
+// neon-testing.ts
+import { makeNeonTesting } from "neon-testing";
 
-// Access the cleanup utility
-await withNeonTestBranch.deleteAllTestBranches();
+export const neonTesting = makeNeonTesting({
+  apiKey: process.env.NEON_API_KEY!,
+  projectId: process.env.NEON_PROJECT_ID!,
+});
+```
+
+The configured function has the following properties:
+
+##### `.api`
+
+Access the Neon API client to make additional API calls:
+
+```ts
+import { neonTesting } from "./neon-testing";
+
+const { data } = await neonTesting.api.getProjectBranch(projectId, branchId);
+```
+
+See the [Neon API client documentation](https://neon.com/docs/reference/typescript-sdk) for all available methods.
+
+##### `.deleteAllTestBranches()`
+
+Deletes all test branches from your Neon project. This is useful for cleanup when tests fail unexpectedly and leave orphaned test branches.
+
+```ts
+import { neonTesting } from "./neon-testing";
+
+await neonTesting.deleteAllTestBranches();
 ```
 
 The function identifies test branches by looking for the `integration-test: true` annotation that Neon Testing automatically adds to all test branches it creates.
 
-### lazySingleton()
+#### Accessing branch information
 
-The `lazySingleton()` function creates a lazy singleton from a factory function. This is useful for managing database connections efficiently:
+When you call the configured lifecycle function in your test files, it returns a function that gives you access to the current test branch:
+
+```ts
+import { neonTesting } from "./neon-testing";
+
+const getBranch = neonTesting();
+
+test("access branch information", () => {
+  const branch = getBranch();
+  console.log(branch.id);
+  console.log(branch.project_id);
+  console.log(branch.expires_at);
+});
+```
+
+See the [Neon Branch API documentation](https://api-docs.neon.tech/reference/getprojectbranch) for all available properties.
+
+### Vite plugin (`neon-testing/vite`)
+
+The Vite plugin clears any existing `DATABASE_URL` environment variable before tests run, ensuring tests use isolated test databases.
+
+```ts
+import { defineConfig } from "vitest/config";
+import { neonTesting } from "neon-testing/vite";
+
+export default defineConfig({
+  plugins: [neonTesting()],
+});
+```
+
+**Options:**
+
+- `debug` (boolean, default: `false`) - Enable debug logging
+
+This plugin is recommended but not required. Without it, tests might accidentally use your existing `DATABASE_URL` instead of isolated test databases.
+
+### Utilities (`neon-testing/utils`)
+
+#### lazySingleton(factory)
+
+Creates a lazy singleton from a factory function. This is useful for managing database connections efficiently:
 
 ```ts
 import { lazySingleton } from "neon-testing/utils";

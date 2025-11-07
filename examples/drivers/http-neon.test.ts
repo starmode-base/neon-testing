@@ -10,14 +10,14 @@
  * https://www.npmjs.com/package/@neondatabase/serverless
  */
 import { describe, expect, test } from "vitest";
-import { withNeonTestBranch } from "../test-setup";
+import { neonTesting } from "../neon-testing";
 import { neon } from "@neondatabase/serverless";
 import { lazySingleton } from "neon-testing/utils";
 
 const endpoints = ["pooler", "direct"] as const;
 
 describe.each(endpoints)("Neon HTTP (%s)", (endpoint) => {
-  withNeonTestBranch({ endpoint });
+  neonTesting({ endpoint });
 
   const sql = lazySingleton(() => neon(process.env.DATABASE_URL!));
 

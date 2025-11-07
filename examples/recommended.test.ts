@@ -1,10 +1,10 @@
 // recommended.test.ts
 import { expect, test } from "vitest";
-import { withNeonTestBranch } from "./test-setup";
+import { neonTesting } from "./neon-testing";
 import { Pool } from "@neondatabase/serverless";
 
 // Enable Neon test branch for this test file
-withNeonTestBranch({
+neonTesting({
   // Recommended for Neon WebSocket drivers to automatically close connections
   autoCloseWebSockets: true,
 });
