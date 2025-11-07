@@ -24,7 +24,7 @@ Each test file runs against its own isolated PostgreSQL database (Neon branch), 
 1. **Branch creation**: Before tests run, a new Neon branch is created with a unique name
 1. **Environment setup**: `DATABASE_URL` is set to point to your test branch
 1. **Test execution**: Your tests run against the isolated database
-1. **Cleanup**: After tests complete, the branch is automatically deleted
+1. **Cleanup**: After tests complete, the branch is automatically deleted (dangling branches expire after 10 minutes)
 
 ### Test isolation
 
