@@ -24,7 +24,11 @@ Each test file runs against its own isolated PostgreSQL database (Neon branch), 
 1. **Branch creation**: Before tests run, a new Neon branch is created with a unique name
 1. **Environment setup**: `DATABASE_URL` is set to point to your test branch
 1. **Test execution**: Your tests run against the isolated database
-1. **Cleanup**: After tests complete, the branch is automatically deleted (dangling branches expire after 10 minutes)
+1. **Cleanup**: After tests complete, the branch is automatically deleted
+
+### Automatic cleanup
+
+Test branches are automatically deleted after your tests complete. As a safety net, branches also expire after 10 minutes by default to handle interrupted or failed test runs. This dual approach minimizes costs while protecting against edge cases like crashed processes or CI failures. Both behaviors can be customized through the `deleteBranch` and `expiresIn` options.
 
 ### Test isolation
 
@@ -218,8 +222,6 @@ export interface NeonTestingOptions {
 }
 ```
 
-See all available options in [NeonTestingOptions](index.ts#L51-L105).
-
 ### Base configuration
 
 Configure the base settings in `makeNeonTesting()`:
@@ -242,22 +244,6 @@ import { neonTesting } from "./neon-testing";
 
 neonTesting({ parentBranchId: "br-staging-123" });
 ```
-
-### Branch expiration
-
-By default, test branches expire automatically after 10 minutes (600 seconds). This provides automatic cleanup for dangling branches from interrupted or failed test runs, minimizing costs.
-
-You can customize the expiration time or disable it:
-
-```ts
-// Extend expiration to 1 hour for debugging
-neonTesting({ expiresIn: 3600 });
-
-// Disable automatic expiration
-neonTesting({ expiresIn: null });
-```
-
-Learn more about [Neon branch expiration](https://neon.com/docs/guides/branch-expiration).
 
 ## Continuous integration
 
