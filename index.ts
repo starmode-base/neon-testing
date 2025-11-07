@@ -262,6 +262,11 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       }
     });
 
+    /**
+     * Return the Neon branch object
+     *
+     * @returns The Neon branch object
+     */
     return () => branch;
   };
 
