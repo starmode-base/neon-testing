@@ -89,6 +89,25 @@ export interface NeonTestingOptions {
 export type NeonTestingOverrides = Omit<Partial<NeonTestingOptions>, "apiKey">;
 
 /**
+ * Validates the expiresIn option
+ */
+function validateExpiresIn(expiresIn: number | null | undefined) {
+  if (expiresIn !== null && expiresIn !== undefined) {
+    if (!Number.isInteger(expiresIn)) {
+      throw new Error("expiresIn must be an integer");
+    }
+
+    if (expiresIn <= 0) {
+      throw new Error("expiresIn must be a positive integer");
+    }
+
+    if (expiresIn > 2592000) {
+      throw new Error("expiresIn must not exceed 30 days (2,592,000 seconds)");
+    }
+  }
+}
+
+/**
  * Factory function that creates a Neon test database setup/teardown function
  * for Vitest test suites.
  *
@@ -106,6 +125,9 @@ export type NeonTestingOverrides = Omit<Partial<NeonTestingOptions>, "apiKey">;
  * - Deletes the test branch after the test suite runs
  */
 export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
+  // Validate factory options
+  validateExpiresIn(factoryOptions.expiresIn);
+
   const apiClient = createApiClient({ apiKey: factoryOptions.apiKey });
 
   /**
@@ -133,6 +155,11 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     /** Override any factory options except apiKey */
     overrides?: NeonTestingOverrides,
   ) => {
+    // Validate overrides
+    if (overrides?.expiresIn !== undefined) {
+      validateExpiresIn(overrides.expiresIn);
+    }
+
     // Merge factory options with overrides
     const options = { ...factoryOptions, ...overrides };
 
@@ -164,27 +191,10 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       const expiresIn =
         options.expiresIn === undefined ? 600 : options.expiresIn; // Default: 10 minutes
 
-      let expiresAt: string | undefined;
-
-      if (expiresIn !== null) {
-        // Validate expiresIn
-        if (!Number.isInteger(expiresIn)) {
-          throw new Error("expiresIn must be an integer");
-        }
-
-        if (expiresIn <= 0) {
-          throw new Error("expiresIn must be a positive integer");
-        }
-
-        if (expiresIn > 2592000) {
-          throw new Error(
-            "expiresIn must not exceed 30 days (2,592,000 seconds)",
-          );
-        }
-
-        // Calculate expiration timestamp
-        expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
-      }
+      const expiresAt =
+        expiresIn !== null
+          ? new Date(Date.now() + expiresIn * 1000).toISOString()
+          : undefined;
 
       const { data } = await apiClient.createProjectBranch(options.projectId, {
         branch: {

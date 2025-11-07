@@ -72,57 +72,6 @@ describe("Branch expiration disabled", () => {
   });
 });
 
-describe("Branch expiration validation", () => {
-  // Helper function to simulate the validation logic from createBranch
-  function validateExpiresIn(expiresIn: number | null) {
-    if (expiresIn !== null) {
-      if (!Number.isInteger(expiresIn)) {
-        throw new Error("expiresIn must be an integer");
-      }
-      if (expiresIn <= 0) {
-        throw new Error("expiresIn must be a positive integer");
-      }
-      if (expiresIn > 2592000) {
-        throw new Error(
-          "expiresIn must not exceed 30 days (2,592,000 seconds)",
-        );
-      }
-    }
-  }
-
-  test("expiresIn: 0 throws validation error", () => {
-    expect(() => validateExpiresIn(0)).toThrow(
-      "expiresIn must be a positive integer",
-    );
-  });
-
-  test("expiresIn: -10 throws validation error", () => {
-    expect(() => validateExpiresIn(-10)).toThrow(
-      "expiresIn must be a positive integer",
-    );
-  });
-
-  test("non-integer expiresIn: 600.5 throws validation error", () => {
-    expect(() => validateExpiresIn(600.5)).toThrow(
-      "expiresIn must be an integer",
-    );
-  });
-
-  test("expiresIn > 30 days throws validation error", () => {
-    expect(() => validateExpiresIn(2592001)).toThrow(
-      "expiresIn must not exceed 30 days",
-    );
-  });
-
-  test("valid expiresIn: 600 does not throw", () => {
-    expect(() => validateExpiresIn(600)).not.toThrow();
-  });
-
-  test("expiresIn: null does not throw", () => {
-    expect(() => validateExpiresIn(null)).not.toThrow();
-  });
-});
-
 describe.skip("End-to-end branch expiration", () => {
   test("branch expires after the specified time", async () => {
     // Create a branch with 5 second expiration
