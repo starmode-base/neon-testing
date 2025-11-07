@@ -179,7 +179,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
    * @param overrides - Optional overrides for the factory options
    * @returns A function that provides access to the current Neon branch object
    */
-  const testDbSetup = (
+  const neonTesting = (
     /** Override any factory options except apiKey */
     overrides?: NeonTestingOverrides,
   ) => {
@@ -299,10 +299,10 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
   };
 
   // Attach utilities
-  testDbSetup.deleteAllTestBranches = deleteAllTestBranches;
-  testDbSetup.api = apiClient;
+  neonTesting.deleteAllTestBranches = deleteAllTestBranches;
+  neonTesting.api = apiClient;
 
-  return testDbSetup;
+  return neonTesting;
 }
 
 /**
