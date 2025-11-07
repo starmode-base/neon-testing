@@ -90,18 +90,18 @@ export default defineConfig({
 });
 ```
 
-This plugin is recommended but not required. Without it, tests might accidentally use your existing `DATABASE_URL` (from `.env` files or environment variables) instead of the isolated test databases that Neon Testing creates. This can happen if you forget to call `withNeonTestBranch()` in a test file where database writes happen.
+This plugin is recommended but not required. Without it, tests might accidentally use your existing `DATABASE_URL` (from `.env` files or environment variables) instead of the isolated test databases that Neon Testing creates. This can happen if you forget to call `neonTesting()` in a test file where database writes happen.
 
 #### 2. Configuration
 
 Use the `makeNeonTesting` factory to generate a lifecycle function for your tests.
 
 ```ts
-// test-setup.ts
+// neon-testing.ts
 import { makeNeonTesting } from "neon-testing";
 
 // Export a configured lifecycle function to use in test files
-export const withNeonTestBranch = makeNeonTesting({
+export const neonTesting = makeNeonTesting({
   apiKey: "apiKey",
   projectId: "projectId",
 });
@@ -114,11 +114,11 @@ Then call the exported test lifecycle function in the test files where you need 
 ```ts
 // recommended.test.ts
 import { expect, test } from "vitest";
-import { withNeonTestBranch } from "./test-setup";
+import { neonTesting } from "./neon-testing";
 import { Pool } from "@neondatabase/serverless";
 
 // Enable Neon test branch for this test file
-withNeonTestBranch({
+neonTesting({
   // Recommended for Neon WebSocket drivers to automatically close connections
   autoCloseWebSockets: true,
 });
@@ -138,7 +138,7 @@ test("database operations", async () => {
 
 This library works with any database driver that supports Neon Postgres and Vitest. The examples below demonstrate connection management, transaction support, and test isolation patterns for some popular drivers.
 
-**IMPORTANT:** For [Neon WebSocket drivers](https://neon.com/docs/serverless/serverless-driver), enable `autoCloseWebSockets` in your `makeNeonTesting()` or `withNeonTestBranch()` configuration. This automatically closes WebSocket connections when deleting test branches, preventing connection termination errors.
+**IMPORTANT:** For [Neon WebSocket drivers](https://neon.com/docs/serverless/serverless-driver), enable `autoCloseWebSockets` in your `makeNeonTesting()` or `neonTesting()` configuration. This automatically closes WebSocket connections when deleting test branches, preventing connection termination errors.
 
 ### Examples
 
@@ -156,9 +156,9 @@ This library works with any database driver that supports Neon Postgres and Vite
 You configure Neon Testing in two places:
 
 - **Base settings** in `makeNeonTesting()`
-- **Optional overrides** in `withNeonTestBranch()`
+- **Optional overrides** when calling the returned function (e.g., `neonTesting()`)
 
-Configure these in `makeNeonTesting()` and optionally override per test file via `withNeonTestBranch()`.
+Configure these in `makeNeonTesting()` and optionally override per test file when calling the returned function.
 
 ```ts
 export interface NeonTestingOptions {
@@ -218,7 +218,7 @@ export interface NeonTestingOptions {
 }
 ```
 
-See all available options in [NeonTestingOptions](index.ts#L31-L85).
+See all available options in [NeonTestingOptions](index.ts#L51-L105).
 
 ### Base configuration
 
@@ -227,7 +227,7 @@ Configure the base settings in `makeNeonTesting()`:
 ```ts
 import { makeNeonTesting } from "neon-testing";
 
-export const withNeonTestBranch = makeNeonTesting({
+export const neonTesting = makeNeonTesting({
   apiKey: "apiKey",
   projectId: "projectId",
 });
@@ -235,12 +235,12 @@ export const withNeonTestBranch = makeNeonTesting({
 
 ### Override configuration
 
-Override the base configuration in specific test files with `withNeonTestBranch()`:
+Override the base configuration in specific test files when calling the function:
 
 ```ts
-import { withNeonTestBranch } from "./test-setup";
+import { neonTesting } from "./neon-testing";
 
-withNeonTestBranch({ parentBranchId: "br-staging-123" });
+neonTesting({ parentBranchId: "br-staging-123" });
 ```
 
 ### Branch expiration
@@ -251,10 +251,10 @@ You can customize the expiration time or disable it:
 
 ```ts
 // Extend expiration to 1 hour for debugging
-withNeonTestBranch({ expiresIn: 3600 });
+neonTesting({ expiresIn: 3600 });
 
 // Disable automatic expiration
-withNeonTestBranch({ expiresIn: null });
+neonTesting({ expiresIn: null });
 ```
 
 Learn more about [Neon branch expiration](https://neon.com/docs/guides/branch-expiration).
@@ -270,15 +270,49 @@ It's easy to run Neon integration tests in CI/CD pipelines:
 
 ## Utilities
 
-### deleteAllTestBranches()
+The function returned by `makeNeonTesting()` includes utility methods and properties that you can access:
 
-The `deleteAllTestBranches()` function is a utility that deletes all test branches from your Neon project. This is useful for cleanup when tests fail unexpectedly and leave orphaned test branches.
+### Branch object
+
+The function returned by calling `neonTesting()` provides access to the current test branch object:
 
 ```ts
-import { withNeonTestBranch } from "./test-setup";
+import { neonTesting } from "./neon-testing";
 
-// Access the cleanup utility
-await withNeonTestBranch.deleteAllTestBranches();
+const getBranch = neonTesting();
+
+test("access branch information", () => {
+  const branch = getBranch();
+  console.log(branch.id);
+  console.log(branch.project_id);
+  console.log(branch.expires_at);
+});
+```
+
+See the [Neon Branch API documentation](https://api-docs.neon.tech/reference/getprojectbranch) for all available properties.
+
+### api
+
+Access the Neon API client to make additional API calls:
+
+```ts
+import { neonTesting } from "./neon-testing";
+
+// Access the Neon API client
+const { data } = await neonTesting.api.getProjectBranch(projectId, branchId);
+```
+
+See the [Neon API client documentation](https://neon.com/docs/reference/typescript-sdk) for all available methods.
+
+### deleteAllTestBranches()
+
+The `deleteAllTestBranches()` function deletes all test branches from your Neon project. This is useful for cleanup when tests fail unexpectedly and leave orphaned test branches.
+
+```ts
+import { neonTesting } from "./neon-testing";
+
+// Delete all test branches
+await neonTesting.deleteAllTestBranches();
 ```
 
 The function identifies test branches by looking for the `integration-test: true` annotation that Neon Testing automatically adds to all test branches it creates.

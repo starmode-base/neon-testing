@@ -111,18 +111,34 @@ export type NeonTestingOverrides = Omit<Partial<NeonTestingOptions>, "apiKey">;
  * Factory function that creates a Neon test database setup/teardown function
  * for Vitest test suites.
  *
- * @param apiKey - The Neon API key, this is used to create and teardown test branches
- * @param projectId - The Neon project ID to operate on
- * @param parentBranchId - The parent branch ID for the new branch. If omitted or empty, the branch will be created from the project's default branch.
- * @param schemaOnly - Whether to create a schema-only branch (default: false)
- * @param endpoint - The type of connection to create (pooler is recommended)
- * @param deleteBranch - Delete the test branch in afterAll (default: true). Disabling this will leave each test branch in the Neon project after the test suite runs
- * @returns A setup/teardown function for Vitest test suites
+ * @param factoryOptions - Configuration options (see {@link NeonTestingOptions})
+ * @returns A setup/teardown function with attached utilities:
+ *  - `deleteAllTestBranches()` - Cleanup method to delete all test branches
+ *  - `api` - Direct access to the Neon API client
  *
- * Side effects:
- * - Sets the `DATABASE_URL` environment variable to the connection URI for the
- *   new branch
- * - Deletes the test branch after the test suite runs
+ * @example
+ * ```ts
+ * // neon-testing.ts
+ * import { makeNeonTesting } from "neon-testing";
+ *
+ * export const neonTesting = makeNeonTesting({
+ *   apiKey: "apiKey",
+ *   projectId: "projectId",
+ * });
+ * ```
+ *
+ * @example
+ * ```ts
+ * // my-test.test.ts
+ * import { neonTesting } from "./neon-testing";
+ *
+ * const getBranch = neonTesting();
+ *
+ * test("my test", () => {
+ *   const branch = getBranch();
+ *   console.log(branch.id);
+ * });
+ * ```
  */
 export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
   // Validate factory options
@@ -131,7 +147,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
   const apiClient = createApiClient({ apiKey: factoryOptions.apiKey });
 
   /**
-   * Delete all test branches
+   * Delete all test branches (branches with the "integration-test: true" annotation)
    */
   async function deleteAllTestBranches() {
     const { data } = await apiClient.listProjectBranches({
@@ -151,6 +167,18 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     }
   }
 
+  /**
+   * Setup/teardown function for Vitest test suites
+   *
+   * Registers Vitest lifecycle hooks that:
+   * - Create an isolated test branch from your parent branch
+   * - Set `DATABASE_URL` environment variable to the test branch connection URI
+   * - Automatically delete the test branch after tests complete (unless `deleteBranch: false`)
+   * - Automatically expire branches after 10 minutes for cleanup (unless `expiresIn: null`)
+   *
+   * @param overrides - Optional overrides for the factory options
+   * @returns A function that provides access to the current Neon branch object
+   */
   const testDbSetup = (
     /** Override any factory options except apiKey */
     overrides?: NeonTestingOverrides,
