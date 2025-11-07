@@ -12,7 +12,7 @@
  * https://orm.drizzle.team/docs/get-started-postgresql#postgresjs
  */
 import { describe, expect, test } from "vitest";
-import { neonTesting } from "../test-setup";
+import { neonTesting } from "../neon-testing";
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 

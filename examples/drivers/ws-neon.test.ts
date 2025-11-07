@@ -10,7 +10,7 @@
  * https://www.npmjs.com/package/@neondatabase/serverless
  */
 import { describe, expect, test } from "vitest";
-import { neonTesting } from "../test-setup";
+import { neonTesting } from "../neon-testing";
 import { Pool } from "@neondatabase/serverless";
 
 const cases = [

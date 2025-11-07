@@ -1,6 +1,6 @@
 // recommended.test.ts
 import { expect, test } from "vitest";
-import { neonTesting } from "./test-setup";
+import { neonTesting } from "./neon-testing";
 import { Pool } from "@neondatabase/serverless";
 
 // Enable Neon test branch for this test file

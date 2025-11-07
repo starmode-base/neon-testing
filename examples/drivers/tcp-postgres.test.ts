@@ -10,7 +10,7 @@
  * https://www.npmjs.com/package/postgres
  */
 import { describe, expect, test } from "vitest";
-import { neonTesting } from "../test-setup";
+import { neonTesting } from "../neon-testing";
 import postgres from "postgres";
 import { lazySingleton } from "neon-testing/utils";
 

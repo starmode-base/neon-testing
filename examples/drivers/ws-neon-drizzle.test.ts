@@ -13,7 +13,7 @@
  * https://orm.drizzle.team/docs/connect-neon
  */
 import { describe, expect, test } from "vitest";
-import { neonTesting } from "../test-setup";
+import { neonTesting } from "../neon-testing";
 import { Pool } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
 

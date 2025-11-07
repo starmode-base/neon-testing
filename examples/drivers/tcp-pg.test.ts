@@ -10,7 +10,7 @@
  * https://www.npmjs.com/package/pg
  */
 import { describe, expect, test } from "vitest";
-import { neonTesting } from "../test-setup";
+import { neonTesting } from "../neon-testing";
 import { Pool } from "pg";
 
 const endpoints = ["pooler", "direct"] as const;

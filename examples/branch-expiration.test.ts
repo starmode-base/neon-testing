@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { neonTesting } from "./test-setup";
+import { neonTesting } from "./neon-testing";
 import invariant from "tiny-invariant";
 
 describe("Branch expiration with default settings", () => {
