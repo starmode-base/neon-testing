@@ -26,17 +26,15 @@ Each test file runs against its own isolated PostgreSQL database (Neon branch), 
 1. **Test execution**: Your tests run against the isolated database
 1. **Cleanup**: After tests complete, the branch is automatically deleted
 
+### Test isolation
+
+Tests in the same file share a single database instance (Neon branch). This means test files are fully isolated from each other, but individual tests within a file are intentionally not isolated. This works because Vitest runs test files in [parallel](https://vitest.dev/guide/parallelism.html), while tests within each file run sequentially.
+
+If you prefer individual tests to be isolated, you can [reset the database](examples/isolated.test.ts) in a `beforeEach` lifecycle hook.
+
 ### Automatic cleanup
 
 Test branches are automatically deleted after your tests complete. As a safety net, branches also expire after 10 minutes by default to handle interrupted or failed test runs. This dual approach minimizes costs while protecting against edge cases like crashed processes or CI failures. Both behaviors can be customized through the `deleteBranch` and `expiresIn` options.
-
-### Test isolation
-
-Tests in the same file share a single database instance (Neon branch). This means test files are fully isolated from each other, but individual tests within a file are intentionally not isolated.
-
-This works because Vitest runs test files in [parallel](https://vitest.dev/guide/parallelism.html), while tests within each file run sequentially.
-
-If you prefer individual tests to be isolated, you can [reset the database](examples/isolated.test.ts) in a `beforeEach` lifecycle hook.
 
 ## Quick start
 
