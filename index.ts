@@ -5,6 +5,7 @@ import {
   createApiClient,
   EndpointType,
   type ConnectionDetails,
+  type Branch,
 } from "@neondatabase/api-client";
 import { afterAll, beforeAll } from "vitest";
 import { neonConfig } from "@neondatabase/serverless";
@@ -135,8 +136,8 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     // Merge factory options with overrides
     const options = { ...factoryOptions, ...overrides };
 
-    // Each test file gets its own branch ID and database client
-    let branchId: string | undefined;
+    // Each test file gets its own branch and database client
+    let branch: Branch | undefined;
 
     // List of tracked Neon WebSocket connections
     const neonSockets = new Set<WebSocket>();
@@ -198,7 +199,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
         },
       });
 
-      branchId = data.branch.id;
+      branch = data.branch;
 
       const [connectionUri] = data.connection_uris ?? [];
 
@@ -213,12 +214,12 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
      * Delete the test branch
      */
     async function deleteBranch() {
-      if (!branchId) {
+      if (!branch?.id) {
         throw new Error("No branch to delete");
       }
 
-      await apiClient.deleteProjectBranch(options.projectId, branchId);
-      branchId = undefined;
+      await apiClient.deleteProjectBranch(options.projectId, branch.id);
+      branch = undefined;
     }
 
     beforeAll(async () => {
@@ -250,6 +251,8 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
         await deleteBranch();
       }
     });
+
+    return () => branch;
   };
 
   // Attach utilities

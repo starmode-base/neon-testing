@@ -5,32 +5,16 @@ import { withNeonTestBranch } from "./test-setup";
 const projectId = process.env.NEON_PROJECT_ID!;
 
 describe("Branch expiration with default settings", () => {
-  withNeonTestBranch();
+  const getBranch = withNeonTestBranch();
 
   test("branch created with default expiration has expires_at set ~600s in future", async () => {
-    // Get the list of branches and find our test branch
-    const { data } = await withNeonTestBranch.api.listProjectBranches({
-      projectId,
-    });
-
-    const testBranches = data.branches.filter(
-      (branch) =>
-        data.annotations[branch.id]?.value["integration-test"] === "true",
-    );
-
-    // Find the most recently created test branch (should be ours)
-    const ourBranch = testBranches.sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    )[0];
-
-    expect(ourBranch).toBeDefined();
+    const branch = getBranch();
 
     // Verify expires_at is set
-    expect(ourBranch?.expires_at).toBeDefined();
+    expect(branch?.expires_at).toBeDefined();
 
     // Verify it's approximately 600 seconds (10 minutes) in the future
-    const expiresAt = new Date(ourBranch?.expires_at!).getTime();
+    const expiresAt = new Date(branch?.expires_at!).getTime();
     const now = Date.now();
     const expectedExpiresAt = now + 600 * 1000;
 
