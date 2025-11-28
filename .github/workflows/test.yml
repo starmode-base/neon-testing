@@ -42,7 +42,7 @@ jobs:
         run: bun run build
 
       - name: Run format
-        run: bunx prettier --check .
+        run: bun run check
 
       - name: Run tests
         env:
