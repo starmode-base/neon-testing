@@ -32,13 +32,14 @@
     "dist"
   ],
   "scripts": {
-    "dev": "tsc --watch",
-    "build": "rm -rf dist && tsc",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "test": "vitest",
     "clean:soft": "rm -rf node_modules dist && bun install",
     "clean:hard": "rm -rf node_modules dist bun.lock && bun install",
-    "check": "bun run build && bunx vitest run && bunx prettier --check .",
+    "check": "bun run typecheck && bun run build && bunx vitest run && bunx prettier --check .",
     "release:patch": "bun run check && bun pm version patch && bun publish --tag latest",
     "release:minor": "bun run check && bun pm version minor && bun publish --tag latest",
     "release:major": "bun run check && bun pm version major && bun publish --tag latest",

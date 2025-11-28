@@ -1,7 +1,7 @@
 import { defineConfig, configDefaults } from "vitest/config";
 import dotenv from "dotenv";
 import tsconfigPaths from "vite-tsconfig-paths";
-import { neonTesting } from "./vite-plugin";
+import { neonTesting } from "neon-testing/vite";
 
 dotenv.config();
 
