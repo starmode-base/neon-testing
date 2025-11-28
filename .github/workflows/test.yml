@@ -38,10 +38,10 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Run checks
+      - name: Build and run checks
         env:
           # https://github.com/starmode-base/neon-testing/settings/variables/actions
           # https://github.com/starmode-base/neon-testing/settings/secrets/actions
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
           NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
-        run: bun run check
+        run: bun run build
