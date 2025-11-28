@@ -39,7 +39,7 @@ jobs:
         run: bun install
 
       - name: Build
-        run: tsc
+        run: bun run build
 
       - name: Run format
         run: bunx prettier --check .
