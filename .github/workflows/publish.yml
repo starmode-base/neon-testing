@@ -25,17 +25,6 @@ jobs:
           node-version: "22.x"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Update npm
-        # Trusted publishing requires npm 11.5.1 or later
-        # https://docs.npmjs.com/trusted-publishers
-        run: npm install -g npm@latest
-
-      - name: Log Node.js version
-        run: node -v
-
-      - name: Log npm version
-        run: npm -v
-
       - name: Setup Bun
         # https://github.com/oven-sh/setup-bun
         uses: oven-sh/setup-bun@v2
@@ -80,7 +69,7 @@ jobs:
         # Publish uses OIDC - no token needed
         # Provenance is automatically generated
         # https://docs.npmjs.com/trusted-publishers
-        run: npm publish --tag ${{ steps.meta.outputs.npm_tag }}
+        run: bun publish --tag ${{ steps.meta.outputs.npm_tag }}
 
       - name: Create GitHub Release
         # https://github.com/softprops/action-gh-release
