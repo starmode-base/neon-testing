@@ -33,7 +33,7 @@
   ],
   "scripts": {
     "dev": "tsc -p tsconfig.build.json --watch",
-    "build": "rm -rf dist && tsc -p tsconfig.build.json && bun run tsc && bunx vitest run && bunx prettier --check .",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && tsc && prettier --check . && vitest run",
     "format": "prettier --write .",
     "test": "vitest",
     "clean:soft": "rm -rf node_modules dist && bun install",
