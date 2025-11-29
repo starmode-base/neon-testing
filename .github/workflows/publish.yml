@@ -6,8 +6,8 @@ on:
       - "v*"
 
 permissions:
-  id-token: write # Required for OIDC
-  contents: read
+  id-token: write # Required for Trusted Publishers (OIDC) - https://docs.npmjs.com/trusted-publishers
+  contents: write # Required for creating releases - https://github.com/softprops/action-gh-release?tab=readme-ov-file#permissions
 
 jobs:
   publish:
