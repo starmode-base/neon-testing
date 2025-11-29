@@ -171,20 +171,22 @@ Configure these in `makeNeonTesting()` and optionally override per test file whe
 ```ts
 export interface NeonTestingOptions {
   /**
-   * The Neon API key, this is used to create and teardown test branches
+   * The Neon API key, this is used to create and teardown test branches (required)
    *
    * https://neon.com/docs/manage/api-keys#creating-api-keys
    */
   apiKey: string;
   /**
-   * The Neon project ID to operate on
+   * The Neon project ID to operate on (required)
    *
    * https://console.neon.tech/app/projects
    */
   projectId: string;
   /**
-   * The parent branch ID for the new branch. If omitted or empty, the branch
-   * will be created from the project's default branch.
+   * The parent branch ID for the new branch (default: undefined)
+   *
+   * If omitted or undefined, test branches will be created from the project's
+   * default branch.
    */
   parentBranchId?: string;
   /**
@@ -192,7 +194,7 @@ export interface NeonTestingOptions {
    */
   schemaOnly?: boolean;
   /**
-   * The type of connection to create (pooler is recommended)
+   * The type of connection to create (default: "pooler")
    */
   endpoint?: "pooler" | "direct";
   /**
