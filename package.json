@@ -1,6 +1,6 @@
 {
   "name": "neon-testing",
-  "version": "2.2.1-beta.2",
+  "version": "2.2.1-beta.3",
   "description": "A Vitest utility for seamless integration tests with Neon Postgres",
   "keywords": [
     "neon",
