@@ -36,14 +36,11 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Log Node.js version
-        run: node -v
-
-      - name: Log npm version
-        run: npm -v
-
-      - name: Log Bun version
-        run: bun -v
+      - name: Log versions
+        run: |
+          echo "Node: $(node -v)"
+          echo "npm: $(npm -v)"
+          echo "Bun: $(bun -v)"
 
       - name: Install dependencies
         run: bun install

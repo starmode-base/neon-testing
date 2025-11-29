@@ -21,20 +21,17 @@ jobs:
         with:
           node-version: "22.x"
 
-      - name: Log Node.js version
-        run: node -v
-
       - name: Setup Bun
         # https://github.com/oven-sh/setup-bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
-      - name: Log Node.js version
-        run: node -v
-
-      - name: Log Bun version
-        run: bun -v
+      - name: Log versions
+        run: |
+          echo "Node: $(node -v)"
+          echo "npm: $(npm -v)"
+          echo "Bun: $(bun -v)"
 
       - name: Install dependencies
         run: bun install
