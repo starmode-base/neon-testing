@@ -1,0 +1,92 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        # https://github.com/actions/setup-node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22.x"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Update npm
+        # Trusted publishing requires npm 11.5.1 or later
+        # https://docs.npmjs.com/trusted-publishers
+        run: npm install -g npm@latest
+
+      - name: Log Node.js version
+        run: node -v
+
+      - name: Log npm version
+        run: npm -v
+
+      - name: Setup Bun
+        # https://github.com/oven-sh/setup-bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Log Node.js version
+        run: node -v
+
+      - name: Log Bun version
+        run: bun -v
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build and run checks
+        env:
+          # https://github.com/starmode-base/neon-testing/settings/variables/actions
+          # https://github.com/starmode-base/neon-testing/settings/secrets/actions
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+        run: bun run build
+
+      - name: Determine npm tag
+        id: meta
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          if [[ "$VERSION" == *"-beta"* ]]; then
+            echo "npm_tag=beta" >> $GITHUB_OUTPUT
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          elif [[ "$VERSION" == *"-canary"* ]] || [[ "$VERSION" == *"-alpha"* ]]; then
+            echo "npm_tag=canary" >> $GITHUB_OUTPUT
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "npm_tag=latest" >> $GITHUB_OUTPUT
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish to npm
+        # Publish uses OIDC - no token needed
+        # Provenance is automatically generated
+        # https://docs.npmjs.com/trusted-publishers
+        run: npm publish --tag ${{ steps.meta.outputs.npm_tag }}
+
+      - name: Create GitHub Release
+        # https://github.com/softprops/action-gh-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.meta.outputs.version }}
+          name: v${{ steps.meta.outputs.version }}
+          prerelease: ${{ steps.meta.outputs.prerelease }}
+          generate_release_notes: true

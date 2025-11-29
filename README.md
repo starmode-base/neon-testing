@@ -377,16 +377,28 @@ Create a free Neon project at [neon.com](https://neon.com/) to test with.
 
 ### Release
 
-To make a new release, run:
+Releases are published via CI when a version tag is pushed. Use these scripts to bump the version and trigger a release:
+
+**Stable releases:**
 
 ```sh
-bun run release:patch
-bun run release:minor
-bun run release:major
-bun run release:beta
+bun run release:patch   # 1.2.3 → 1.2.4
+bun run release:minor   # 1.2.3 → 1.3.0
+bun run release:major   # 1.2.3 → 2.0.0
 ```
 
-The command will abort if there are uncommitted changes in the working tree, or if the `version` in [package.json](package.json) has not been incremented.
+**Beta releases:**
+
+```sh
+bun run release:beta          # Default: 1.2.3 → 1.2.4-beta.0, then 1.2.4-beta.1, etc.
+bun run release:beta:patch    # Start beta for patch: 1.2.3 → 1.2.4-beta.0
+bun run release:beta:minor    # Start beta for minor: 1.2.3 → 1.3.0-beta.0
+bun run release:beta:major    # Start beta for major: 1.2.3 → 2.0.0-beta.0
+```
+
+Use `release:beta` for most beta releases. It bumps the patch version once when starting from stable, then increments the beta number for subsequent releases. Use `release:beta:minor` or `release:beta:major` only when starting a beta cycle for a larger version bump.
+
+The scripts bump the version, create a git tag, and push to trigger CI. The command will abort if there are uncommitted changes.
 
 ## Author
 
