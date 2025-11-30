@@ -1,6 +1,5 @@
 import { defineConfig, configDefaults } from "vitest/config";
 import dotenv from "dotenv";
-import tsconfigPaths from "vite-tsconfig-paths";
 import { neonTesting } from "neon-testing/vite";
 
 dotenv.config();
@@ -13,5 +12,5 @@ export default defineConfig({
     // Limit to concurrent test files to avoid Neon API rate limiting
     maxConcurrency: 2,
   },
-  plugins: [tsconfigPaths(), neonTesting({ debug: false })],
+  plugins: [neonTesting({ debug: false })],
 });
