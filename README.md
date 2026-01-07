@@ -225,6 +225,17 @@ export interface NeonTestingOptions {
    * https://neon.com/docs/guides/branch-expiration
    */
   expiresIn?: number | null;
+  /**
+   * The database role to connect as (default: project owner role)
+   *
+   * The role must exist in the parent branch. Roles are automatically
+   * copied to test branches when branching.
+   */
+  roleName?: string;
+  /**
+   * The database to connect to (default: project default database)
+   */
+  databaseName?: string;
 }
 ```
 
@@ -253,6 +264,41 @@ neonTesting({
   parentBranchId: "br-staging-123",
 });
 ```
+
+### Role selection
+
+You can connect as a specific database role using the `roleName` option. This is useful for testing Row-Level Security (RLS) policies with non-privileged roles.
+
+```ts
+// Connect as a specific role (must exist in parent branch)
+neonTesting({
+  roleName: "test_user",
+});
+```
+
+**Setting up a role for RLS testing:**
+
+1. Create a role in your parent branch without `BYPASSRLS`:
+
+   ```sql
+   CREATE ROLE test_user WITH LOGIN PASSWORD 'your_password';
+   GRANT CONNECT ON DATABASE neondb TO test_user;
+   GRANT USAGE ON SCHEMA public TO test_user;
+   GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO test_user;
+   ```
+
+2. The role is automatically copied to test branches when branching.
+
+3. Use the role in your tests:
+
+   ```ts
+   neonTesting({ roleName: "test_user" });
+
+   test("RLS policy enforces user isolation", async () => {
+     const sql = neon(process.env.DATABASE_URL!);
+     // Now connected as test_user - RLS policies are enforced
+   });
+   ```
 
 ## Continuous integration
 
