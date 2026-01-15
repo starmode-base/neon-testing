@@ -233,8 +233,14 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       branch = data.branch;
 
       // Determine role and database (handles multi-role/database projects)
-      const targetRole = options.roleName ?? data.roles?.[0]?.name;
-      const targetDatabase = options.databaseName ?? data.databases?.[0]?.name;
+      const targetRole =
+        options.roleName ??
+        data.roles?.find((r) => r.name === "neondb_owner")?.name ??
+        data.roles?.[0]?.name;
+      const targetDatabase =
+        options.databaseName ??
+        data.databases?.find((d) => d.name === "neondb")?.name ??
+        data.databases?.[0]?.name;
 
       if (!targetRole) {
         throw new Error("No role available in branch");
