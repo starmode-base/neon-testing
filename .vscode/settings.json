@@ -6,5 +6,6 @@
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
   "npm.packageManager": "bun",
+  "npm.scriptRunner": "bun",
   "search.exclude": { "**/bun.lock": true }
 }
