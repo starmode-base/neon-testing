@@ -11,6 +11,18 @@ Each test file runs against its own isolated PostgreSQL database (Neon branch), 
 
 **Testing against a clone of your production database lets you verify functionality that mocks cannot.**
 
+## Table of Contents
+
+- [Features](#features)
+- [How it works](#how-it-works)
+- [Quick start](#quick-start)
+- [Drivers](#drivers)
+- [Configuration](#configuration)
+- [Continuous integration](#continuous-integration)
+- [API Reference](#api-reference)
+- [Contributing](#contributing)
+- [Author](#author)
+
 ## Features
 
 - 🔄 **Isolated test environments** - Each test file runs against its own Postgres database with your actual schema and constraints
