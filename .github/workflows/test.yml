@@ -3,7 +3,11 @@ name: Integration tests
 on:
   push:
     branches: [main]
-  pull_request:
+  # pull_request_target enables secrets for fork PRs (required for Neon API)
+  # SECURITY: Requires manual approval before running - configure at:
+  # https://github.com/starmode-base/neon-testing/settings/actions
+  # → "Require approval for all external contributors"
+  pull_request_target:
     branches: [main]
 
 jobs:
@@ -13,7 +17,10 @@ jobs:
     steps:
       - name: Checkout
         # https://github.com/actions/checkout
+        # For pull_request_target, explicitly checkout the PR head to test the contributor's code
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup Node.js
         # https://github.com/actions/setup-node
