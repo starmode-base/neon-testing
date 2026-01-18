@@ -32,7 +32,6 @@
     "dist"
   ],
   "scripts": {
-    "prepare": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch",
     "build": "rm -rf dist && tsc -p tsconfig.build.json && tsc && prettier --check . && vitest run",
     "format": "prettier --write .",
