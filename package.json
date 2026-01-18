@@ -58,7 +58,7 @@
     "@neondatabase/serverless": "^1.0.2",
     "@types/pg": "^8.16.0",
     "dotenv": "^17.2.3",
-    "drizzle-orm": "^0.44.7",
+    "drizzle-orm": "^0.45.1",
     "pg": "^8.17.1",
     "postgres": "^3.4.8",
     "prettier": "^3.8.0",
