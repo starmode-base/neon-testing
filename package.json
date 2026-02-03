@@ -36,6 +36,7 @@
     "build": "rm -rf dist && tsc -p tsconfig.build.json && tsc && prettier --check . && vitest run",
     "format": "prettier --write .",
     "test": "vitest",
+    "skills:update": "bunx skills add neondatabase/agent-skills",
     "clean:soft": "rm -rf node_modules dist && bun install",
     "clean:hard": "rm -rf node_modules dist bun.lock && bun install",
     "release:patch": "bun pm version patch",
