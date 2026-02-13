@@ -1,3 +1,4 @@
 {
-  "recommendations": ["esbenp.prettier-vscode", "vitest.explorer"]
+  "recommendations": ["esbenp.prettier-vscode", "vitest.explorer"],
+  "unwantedRecommendations": []
 }
