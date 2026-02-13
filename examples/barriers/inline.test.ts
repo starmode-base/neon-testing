@@ -59,10 +59,14 @@ async function getBalanceById(accountId: number) {
 
 /**
  * 1. Bare queries with barrier
+ *
+ * Two concurrent credits each SELECT the balance (100), add 50, and UPDATE.
+ * Without a transaction or lock, both write 150 — one credit is silently lost.
  */
 test("❌ 1. Bare queries with barrier", async () => {
   const barrier = createBarrier(2);
 
+  // Bare SELECT and UPDATE — no transaction, no lock
   const credit = async (accountId: number, amount: number) => {
     const client = await getClient();
 
@@ -71,7 +75,6 @@ test("❌ 1. Bare queries with barrier", async () => {
       [accountId],
     );
 
-    // Synchronization barrier between read and write
     await barrier();
 
     const newBalance = result.rows[0]!.balance + amount;
@@ -81,20 +84,23 @@ test("❌ 1. Bare queries with barrier", async () => {
     ]);
   };
 
-  // Run two $50 credits at the same time
+  // Run two credits at the same time
   await Promise.all([credit(1, 50), credit(1, 50)]);
 
-  // Race condition: both tasks read 100, both compute 150, both write 150.
-  // One $50 credit is silently lost.
-  expect(await getBalanceById(1)).toBe(150); // ❌ Should be 200 with proper isolation
+  // ❌ Should be 200 with proper isolation
+  expect(await getBalanceById(1)).toBe(150);
 });
 
 /**
  * 2. Transactions with barrier
+ *
+ * Wrapping in BEGIN/COMMIT doesn't help. Under READ COMMITTED isolation,
+ * both transactions still read the same stale balance before either writes.
  */
 test("❌ 2. With transactions and barrier", async () => {
   const barrier = createBarrier(2);
 
+  // Same as test 1, plus: BEGIN/COMMIT
   const credit = async (accountId: number, amount: number) => {
     const client = await getClient();
 
@@ -105,7 +111,6 @@ test("❌ 2. With transactions and barrier", async () => {
       [accountId],
     );
 
-    // Synchronization barrier between read and write
     await barrier();
 
     const newBalance = result.rows[0]!.balance + amount;
@@ -117,26 +122,28 @@ test("❌ 2. With transactions and barrier", async () => {
     await client.query("COMMIT");
   };
 
+  // Run two credits at the same time
   await Promise.all([credit(1, 50), credit(1, 50)]);
 
-  // Still 150! READ COMMITTED isolation sees committed data per statement,
-  // but doesn't prevent concurrent reads of stale values. A transaction
-  // gives you a consistent snapshot per statement — not a write lock.
+  // ❌ Should be 200 with proper isolation
   expect(await getBalanceById(1)).toBe(150);
 });
 
 /**
  * 3. FOR UPDATE — barrier between read and write (deadlock)
+ *
+ * Adding FOR UPDATE acquires a row lock on SELECT. But with the barrier
+ * after the lock, T1 holds the lock and waits for T2 — which is blocked
+ * trying to acquire the same lock. Neither can proceed: deadlock.
  */
 test("❌ 3. With write lock and barrier (deadlock)", async () => {
   const barrier = createBarrier(2);
   const clients: PoolClient[] = [];
 
+  // Same as test 2, plus: FOR UPDATE
   const credit = async (accountId: number, amount: number) => {
     const client = await getClient();
-    // Keep a reference to the client so we can release deadlocked connections
-    // after the test
-    clients.push(client);
+    clients.push(client); // track for cleanup after deadlock
 
     await client.query("BEGIN");
 
@@ -145,9 +152,6 @@ test("❌ 3. With write lock and barrier (deadlock)", async () => {
       [accountId],
     );
 
-    // Synchronization barrier between read and write
-    // Barrier AFTER the locked SELECT — T1 holds the lock and waits here.
-    // T2 blocks on the lock and never reaches the barrier.
     await barrier();
 
     const newBalance = result.rows[0]!.balance + amount;
@@ -159,6 +163,7 @@ test("❌ 3. With write lock and barrier (deadlock)", async () => {
     await client.query("COMMIT");
   };
 
+  // Run two credits at the same time (and wait for the deadlock)
   const result = await Promise.race([
     Promise.all([credit(1, 50), credit(1, 50)]).then(
       () => "completed" as const,
@@ -168,30 +173,29 @@ test("❌ 3. With write lock and barrier (deadlock)", async () => {
     ),
   ]);
 
-  // T1 acquires the row lock, then waits at the barrier for T2.
-  // T2 tries to lock the same row, blocks on T1's lock.
-  // Neither can proceed — proving the lock works.
-  expect(result).toBe("deadlock");
-
   // Terminate the stuck connections so subsequent tests can DROP TABLE
   clients.forEach((c) => c.release(true));
+
+  // ❌ Should be "deadlock"
+  expect(result).toBe("deadlock");
 });
 
 /**
  * 4. FOR UPDATE — barrier before SELECT (the solution)
+ *
+ * Moving the barrier before the locked SELECT lets both transactions enter
+ * the critical section concurrently. FOR UPDATE then serializes them: T1
+ * locks the row, T2 waits, and reads the updated value after T1 commits.
  */
-
 test("✅ 4. With write lock and barrier (barrier in correct position)", async () => {
   const barrier = createBarrier(2);
 
+  // Same as test 3, but: barrier moved before SELECT
   const credit = async (accountId: number, amount: number) => {
     const client = await getClient();
 
     await client.query("BEGIN");
 
-    // Synchronization barrier before read with write lock, after the transaction begins
-    // Barrier BEFORE the SELECT — both transactions start before either
-    // tries to acquire the lock
     await barrier();
 
     const result = await client.query<Account>(
@@ -208,26 +212,29 @@ test("✅ 4. With write lock and barrier (barrier in correct position)", async (
     await client.query("COMMIT");
   };
 
+  // Run two credits at the same time
   await Promise.all([credit(1, 50), credit(1, 50)]);
 
-  // FOR UPDATE serializes: T1 locks the row, T2 waits at the SELECT.
-  // When T1 commits, T2 reads the updated value and computes correctly.
+  // ✅ Should be 200 with proper isolation
   expect(await getBalanceById(1)).toBe(200);
 });
 
 /**
  * 5. Proof: without FOR UPDATE the barrier alone changes nothing
+ *
+ * Same barrier position as test 4 but without FOR UPDATE. Both transactions
+ * read the stale balance concurrently — proving it's the lock, not the
+ * barrier placement, that prevents the lost update.
  */
 test("❌ 5. Without write lock and barrier (proof)", async () => {
   const barrier = createBarrier(2);
 
+  // Same as test 4, minus: FOR UPDATE
   const credit = async (accountId: number, amount: number) => {
     const client = await getClient();
 
     await client.query("BEGIN");
 
-    // Synchronization barrier before read with write lock, after the transaction begins
-    // Same barrier position as test 4, but no FOR UPDATE
     await barrier();
 
     const result = await client.query<Account>(
@@ -244,9 +251,9 @@ test("❌ 5. Without write lock and barrier (proof)", async () => {
     await client.query("COMMIT");
   };
 
+  // Run two credits at the same time
   await Promise.all([credit(1, 50), credit(1, 50)]);
 
-  // Same barrier, same position. Without the lock, both read stale data.
-  // A correct barrier test passes with the lock and fails without it.
+  // ❌ Should be 200 with proper isolation
   expect(await getBalanceById(1)).toBe(150);
 });
