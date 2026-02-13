@@ -405,6 +405,21 @@ This plugin is recommended but not required. Without it, tests might accidentall
 
 ### Utilities (`neon-testing/utils`)
 
+#### createBarrier(count)
+
+Creates a synchronization barrier that blocks until `count` callers have arrived, then releases all of them simultaneously. Useful for deterministically reproducing race conditions in concurrent database operations.
+
+```ts
+import { createBarrier } from "neon-testing/utils";
+
+const barrier = createBarrier(2);
+
+// In concurrent operations:
+await barrier(); // blocks until both arrive, then releases simultaneously
+```
+
+See the [examples](examples/barriers/) and read more about [harnessing Postgres race conditions](https://www.lirbank.com/harnessing-postgres-race-conditions).
+
 #### lazySingleton(factory)
 
 Creates a lazy singleton from a factory function. This is useful for managing database connections efficiently:
