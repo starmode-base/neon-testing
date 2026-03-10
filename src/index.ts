@@ -7,7 +7,6 @@ import {
   type Branch,
 } from "@neondatabase/api-client";
 import { afterAll, beforeAll } from "vitest";
-import { neonConfig } from "@neondatabase/serverless";
 
 /**
  * Validates the expiresIn option
@@ -298,7 +297,14 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       if (options.autoCloseWebSockets) {
         // Install a custom WebSocket constructor that tracks Neon WebSocket
         // connections and closes them before deleting the branch
-        neonConfig.webSocketConstructor = TrackingWebSocket;
+        try {
+          const { neonConfig } = await import("@neondatabase/serverless");
+          neonConfig.webSocketConstructor = TrackingWebSocket;
+        } catch {
+          throw new Error(
+            "autoCloseWebSockets requires @neondatabase/serverless to be installed. Run: npm install @neondatabase/serverless",
+          );
+        }
       }
     });
 
