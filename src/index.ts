@@ -187,19 +187,9 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     let branch: Branch | undefined;
 
     // List of tracked Neon WebSocket connections
-    const neonSockets = new Set<WebSocket>();
-
-    // Custom WebSocket constructor that tracks Neon WebSocket connections
-    class TrackingWebSocket extends WebSocket {
-      constructor(url: string) {
-        super(url);
-
-        // Only track Neon WebSocket connections
-        if (!url.includes(".neon.tech/")) return;
-
-        neonSockets.add(this);
-      }
-    }
+    // Lazily initialized when autoCloseWebSockets is enabled (avoids
+    // referencing the WebSocket global on runtimes that lack it, e.g. Node 20)
+    let neonSockets: Set<WebSocket> | undefined;
 
     /**
      * Create a new test branch
@@ -295,6 +285,20 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       });
 
       if (options.autoCloseWebSockets) {
+        neonSockets = new Set<WebSocket>();
+
+        // Custom WebSocket constructor that tracks Neon WebSocket connections
+        class TrackingWebSocket extends WebSocket {
+          constructor(url: string) {
+            super(url);
+
+            // Only track Neon WebSocket connections
+            if (!url.includes(".neon.tech/")) return;
+
+            neonSockets!.add(this);
+          }
+        }
+
         // Install a custom WebSocket constructor that tracks Neon WebSocket
         // connections and closes them before deleting the branch
         try {
@@ -312,7 +316,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       process.env.DATABASE_URL = undefined;
 
       // Close all tracked Neon WebSocket connections before deleting the branch
-      if (options.autoCloseWebSockets) {
+      if (options.autoCloseWebSockets && neonSockets) {
         // Suppress Neon WebSocket "Connection terminated unexpectedly" error
         process.prependListener("uncaughtException", neonWsErrorHandler);
 
