@@ -10,7 +10,7 @@ export default defineConfig({
     hookTimeout: 20_000,
     exclude: [...configDefaults.exclude, "**/dist/**"],
     // Limit to concurrent test files to avoid Neon API rate limiting
-    maxConcurrency: 2,
+    // maxConcurrency: 2,
   },
   plugins: [neonTesting({ debug: false })],
 });
