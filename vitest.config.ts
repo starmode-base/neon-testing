@@ -6,8 +6,8 @@ dotenv.config();
 
 export default defineConfig({
   test: {
-    testTimeout: 10000,
-    hookTimeout: 20000,
+    testTimeout: 10_000,
+    hookTimeout: 20_000,
     exclude: [...configDefaults.exclude, "**/dist/**"],
     // Limit to concurrent test files to avoid Neon API rate limiting
     maxConcurrency: 2,
