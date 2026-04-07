@@ -18,6 +18,7 @@ Each test file runs against its own isolated PostgreSQL database (Neon branch), 
 - [Quick start](#quick-start)
 - [Drivers](#drivers)
 - [Configuration](#configuration)
+- [Error handling](#error-handling)
 - [Continuous integration](#continuous-integration)
 - [API Reference](#api-reference)
 - [Contributing](#contributing)
@@ -311,6 +312,26 @@ neonTesting({
      // Now connected as test_user - RLS policies are enforced
    });
    ```
+
+## Error handling
+
+### Rate limiting
+
+Neon Testing automatically retries with exponential backoff when the Neon API returns HTTP 423 (resource locked), up to 8 attempts. No action needed from the user.
+
+### API errors
+
+Other Neon API errors are surfaced with the API's error code and message so you can see what went wrong. For example:
+
+```
+Neon API error - HTTP 422 - ROOT_BRANCHES_LIMIT_EXCEEDED - root branches limit exceeded
+```
+
+The original error is preserved on `.cause` for programmatic access to the full API response.
+
+### Schema-only branch limits
+
+Schema-only branches (`schemaOnly: true`) are root branches in Neon, which have a per-project limit. If you hit `ROOT_BRANCHES_LIMIT_EXCEEDED`, reduce the number of concurrent test files (see Vitest's [parallelism docs](https://vitest.dev/guide/parallelism.html)) or contact Neon to increase the limit.
 
 ## Continuous integration
 

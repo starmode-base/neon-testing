@@ -390,6 +390,7 @@ async function withRetry<T>(
     } catch (error: any) {
       const status = error?.response?.status;
 
+      // Retry on 423 (resource locked) with exponential backoff
       if (status === 423 && attempt < options.maxRetries) {
         const delay = options.baseDelayMs * Math.pow(2, attempt - 1);
 
@@ -401,6 +402,16 @@ async function withRetry<T>(
         continue;
       }
 
+      // Surface Neon API error details that are otherwise buried in the Axios error
+      if (error?.response?.data?.code) {
+        const { code, message } = error.response.data;
+        throw new Error(
+          `Neon API error - HTTP ${status} - ${code} - ${message}`,
+          { cause: error },
+        );
+      }
+
+      // Non-API errors (network, timeouts, etc.) pass through as-is
       throw error;
     }
   }
