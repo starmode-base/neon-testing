@@ -49,7 +49,7 @@ describe("endpoint: direct", () => {
   });
 });
 
-describe.only("sslMode: `default`", () => {
+describe("sslMode: `default`", () => {
   neonTesting({ sslMode: undefined });
 
   test("leaves sslmode untouched and connects via pg", async () => {
@@ -66,7 +66,7 @@ describe.only("sslMode: `default`", () => {
   });
 });
 
-describe.only("sslMode: verify-full", () => {
+describe("sslMode: verify-full", () => {
   neonTesting({ sslMode: "verify-full" });
 
   test("rewrites sslmode and connects via pg", async () => {
@@ -83,7 +83,7 @@ describe.only("sslMode: verify-full", () => {
   });
 });
 
-describe.only("sslMode: require", () => {
+describe("sslMode: require", () => {
   neonTesting({ sslMode: "require" });
 
   test("sets uselibpqcompat and connects via pg", async () => {
