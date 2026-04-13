@@ -9,6 +9,29 @@ import {
 import { afterAll, beforeAll } from "vitest";
 
 /**
+ * Rewrite the `sslmode` (and related) query params on a Neon connection URI.
+ *
+ * Neon's API returns URIs with `sslmode=require`. In pg v9 /
+ * pg-connection-string v3 this mode will adopt libpq semantics (encrypt
+ * without CA verification) instead of today's effective `verify-full`.
+ */
+function applySslMode(
+  uri: string,
+  mode: "verify-full" | "require" | undefined,
+): string {
+  if (mode === undefined) return uri;
+
+  const url = new URL(uri);
+  url.searchParams.set("sslmode", mode);
+  if (mode === "require") {
+    url.searchParams.set("uselibpqcompat", "true");
+  } else {
+    url.searchParams.delete("uselibpqcompat");
+  }
+  return url.toString();
+}
+
+/**
  * Validates the expiresIn option
  */
 function validateExpiresIn(expiresIn: number | null | undefined) {
@@ -94,6 +117,21 @@ export interface NeonTestingOptions {
    * The database to connect to (default: project default database)
    */
   databaseName?: string;
+  /**
+   * Override the `sslmode` query param on the connection URI (default:
+   * undefined — URI is passed through unchanged)
+   *
+   * Neon's API returns URIs with `sslmode=require`. In pg v9 the meaning of
+   * `require` changes to libpq semantics (encrypt, but don't verify the CA).
+   *
+   * - `"verify-full"` — strict CA verification (silences the pg v9 warning)
+   * - `"require"` — preserves today's effective behavior under pg v9 by also
+   *   setting `uselibpqcompat=true`
+   *
+   * Only affects drivers that parse `sslmode` (e.g. `pg`). The Neon
+   * serverless driver ignores it.
+   */
+  sslMode?: "verify-full" | "require";
 }
 
 /** Options for overriding test database setup (excludes apiKey) */
@@ -263,7 +301,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
         pooled: options.endpoint !== "direct",
       });
 
-      return uriData.uri;
+      return applySslMode(uriData.uri, options.sslMode);
     }
 
     /**

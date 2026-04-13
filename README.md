@@ -249,6 +249,21 @@ export interface NeonTestingOptions {
    * The database to connect to (default: project default database)
    */
   databaseName?: string;
+  /**
+   * Override the `sslmode` query param on the connection URI (default:
+   * undefined — URI is passed through unchanged)
+   *
+   * Neon's API returns URIs with `sslmode=require`. In pg v9 the meaning of
+   * `require` changes to libpq semantics (encrypt, but don't verify the CA).
+   *
+   * - `"verify-full"` — strict CA verification (silences the pg v9 warning)
+   * - `"require"` — preserves today's effective behavior under pg v9 by also
+   *   setting `uselibpqcompat=true`
+   *
+   * Only affects drivers that parse `sslmode` (e.g. `pg`). The Neon
+   * serverless driver ignores it.
+   */
+  sslMode?: "verify-full" | "require";
 }
 ```
 
@@ -312,6 +327,20 @@ neonTesting({
      // Now connected as test_user - RLS policies are enforced
    });
    ```
+
+### SSL mode
+
+Neon returns URIs with `sslmode=require`. In pg v9 the meaning of `require` changes to libpq semantics (encrypt, but don't verify the CA). Use `sslMode` to pick the semantics you want:
+
+```ts
+// Strict CA verification (silences the pg v9 deprecation warning) - recommended
+neonTesting({ sslMode: "verify-full" });
+
+// Preserve today's effective behavior under pg v9
+neonTesting({ sslMode: "require" });
+```
+
+Only affects drivers that parse `sslmode` (e.g. [`pg`](https://www.npmjs.com/package/pg)). The [Neon serverless driver](https://www.npmjs.com/package/@neondatabase/serverless) ignores it.
 
 ## Error handling
 
