@@ -530,3 +530,4 @@ The scripts bump the version, create a git tag, and push to trigger CI. The comm
 Hi, I'm [Mikael Lirbank](https://www.lirbank.com/). I build robust, reliable, high-quality AI systems. I care deeply about quality—AI evals, robust test suites, clean data models, and clean architecture.
 
 Need help building elegant systems? [I'm happy to help](https://www.lirbank.com/).
+a
