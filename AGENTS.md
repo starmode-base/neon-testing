@@ -1,0 +1,1 @@
+- When writing prose, don't narrate your own process
