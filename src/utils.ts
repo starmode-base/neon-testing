@@ -1,6 +1,6 @@
-import { neonTesting as neonTestingVite } from "./vite-plugin.js";
-export { lazySingleton } from "./singleton.js";
-export { createBarrier } from "./barrier.js";
+import { neonTesting as neonTestingVite } from "./vite-plugin";
+export { lazySingleton } from "./singleton";
+export { createBarrier } from "./barrier";
 
 /**
  * @deprecated Import the Vite plugin from "neon-testing/vite" instead. This

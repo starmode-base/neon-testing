@@ -15,25 +15,17 @@
   "bugs": "https://github.com/starmode-base/neon-testing/issues",
   "type": "module",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./utils": {
-      "types": "./dist/utils.d.ts",
-      "import": "./dist/utils.js"
-    },
-    "./vite": {
-      "types": "./dist/vite-plugin.d.ts",
-      "import": "./dist/vite-plugin.js"
-    }
+    ".": "./src/index.ts",
+    "./utils": "./src/utils.ts",
+    "./vite": "./src/vite-plugin.ts"
   },
   "files": [
-    "dist"
+    "src"
   ],
   "scripts": {
-    "dev": "tsc -p tsconfig.build.json --watch",
-    "build": "rm -rf dist && tsc -p tsconfig.build.json && tsc && prettier --check . && vitest run",
+    "dev": "tsc --noEmit --watch",
+    "typecheck": "tsc --noEmit",
+    "check": "prettier --check . && tsc --noEmit && vitest run",
     "format": "prettier --write .",
     "test": "vitest",
     "skills:update": "bunx skills add neondatabase/agent-skills",
@@ -69,6 +61,6 @@
     "vitest": "^4.1.8"
   },
   "browser": {
-    "./dist/vite-plugin.js": "./dist/browser-empty.js"
+    "./src/vite-plugin.ts": "./src/browser-empty.ts"
   }
 }

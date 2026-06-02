@@ -21,7 +21,7 @@ export function neonTesting(
     enforce: "post",
     config(user) {
       const setupPath = fileURLToPath(
-        new URL("./vitest-setup.js", import.meta.url),
+        new URL("./vitest-setup.ts", import.meta.url),
       );
 
       return {
