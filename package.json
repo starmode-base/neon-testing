@@ -17,7 +17,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./utils": "./src/utils.ts",
-    "./vite": "./src/vite-plugin.ts"
+    "./setup": "./src/setup.ts"
   },
   "files": [
     "src"
@@ -60,8 +60,5 @@
     "typescript": "^5.9.3",
     "vite": "^7.3.5",
     "vitest": "^4.1.8"
-  },
-  "browser": {
-    "./src/vite-plugin.ts": "./src/browser-empty.ts"
   }
 }
