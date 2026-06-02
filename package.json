@@ -24,6 +24,7 @@
   ],
   "scripts": {
     "dev": "tsc --noEmit --watch",
+    "build": "bun run check",
     "typecheck": "tsc --noEmit",
     "check": "prettier --check . && tsc --noEmit && vitest run",
     "format": "prettier --write .",
