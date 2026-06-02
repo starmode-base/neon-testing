@@ -24,7 +24,7 @@
   ],
   "scripts": {
     "dev": "tsc --noEmit --watch",
-    "build": "bun run check",
+    "build": "bun run check # TODO: Remove after PR merge",
     "typecheck": "tsc --noEmit",
     "check": "prettier --check . && tsc --noEmit && vitest run",
     "format": "prettier --write .",
