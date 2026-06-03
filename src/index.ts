@@ -351,7 +351,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
     });
 
     afterAll(async () => {
-      process.env.DATABASE_URL = undefined;
+      delete process.env.DATABASE_URL;
 
       // Close all tracked Neon WebSocket connections before deleting the branch
       if (options.autoCloseWebSockets && neonSockets) {
