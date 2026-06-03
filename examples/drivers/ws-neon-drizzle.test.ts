@@ -64,7 +64,7 @@ describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
   neonTesting({ endpoint, autoCloseWebSockets: true });
 
   test("create table", async () => {
-    const { end, sql } = makeDb(process.env.DATABASE_URL!);
+    const { sql } = makeDb(process.env.DATABASE_URL!);
 
     await sql(`
       CREATE TABLE users (
@@ -88,7 +88,7 @@ describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
   });
 
   test("tests are not isolated within a test file", async () => {
-    const { end, sql } = makeDb(process.env.DATABASE_URL!);
+    const { sql } = makeDb(process.env.DATABASE_URL!);
 
     const newUser = await sql(`
       INSERT INTO users (name)
@@ -109,7 +109,7 @@ describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
   });
 
   test("interactive transactions are supported", async () => {
-    const { end, sql } = makeDb(process.env.DATABASE_URL!);
+    const { sql } = makeDb(process.env.DATABASE_URL!);
 
     try {
       await sql("BEGIN");

@@ -50,7 +50,7 @@ describe("endpoint: direct", () => {
 });
 
 describe("sslMode: `default`", () => {
-  neonTesting({ sslMode: undefined });
+  neonTesting();
 
   test("leaves sslmode untouched and connects via pg", async () => {
     const url = new URL(process.env.DATABASE_URL!);

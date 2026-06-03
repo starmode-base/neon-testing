@@ -247,9 +247,11 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       const { data } = await apiClient.createProjectBranch(options.projectId, {
         branch: {
           name: `test/${crypto.randomUUID()}`,
-          parent_id: options.parentBranchId,
-          init_source: options.schemaOnly ? "schema-only" : undefined,
-          expires_at: expiresAt,
+          ...(options.parentBranchId
+            ? { parent_id: options.parentBranchId }
+            : {}),
+          ...(options.schemaOnly ? { init_source: "schema-only" } : {}),
+          ...(expiresAt ? { expires_at: expiresAt } : {}),
         },
         endpoints: [{ type: EndpointType.ReadWrite }],
         annotation_value: {

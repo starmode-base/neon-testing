@@ -23,10 +23,10 @@
     "src"
   ],
   "scripts": {
-    "dev": "tsc --noEmit --watch",
+    "dev": "tsc --watch",
     "build": "bun run check # TODO: Remove after PR merge",
-    "typecheck": "tsc --noEmit",
-    "check": "prettier --check . && tsc --noEmit && vitest run",
+    "typecheck": "tsc",
+    "check": "prettier --check . && tsc && vitest run",
     "format": "prettier --write .",
     "test": "vitest",
     "skills:update": "bunx skills add neondatabase/agent-skills",
@@ -45,7 +45,6 @@
     "@neondatabase/api-client": "^2.7.1"
   },
   "peerDependencies": {
-    "vite": "^7",
     "vitest": "^3 || ^4"
   },
   "devDependencies": {
@@ -57,8 +56,7 @@
     "postgres": "^3.4.9",
     "prettier": "^3.8.3",
     "tiny-invariant": "^1.3.3",
-    "typescript": "^5.9.3",
-    "vite": "^7.3.5",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.8"
   }
 }
