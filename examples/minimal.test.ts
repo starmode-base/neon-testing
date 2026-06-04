@@ -1,6 +1,6 @@
 // minimal.test.ts
 import { expect, test } from "vitest";
-import { makeNeonTesting } from "neon-testing";
+import { makeNeonTesting } from "neon-testing/vitest";
 import { Pool } from "@neondatabase/serverless";
 
 // Enable Neon test branch for this test file

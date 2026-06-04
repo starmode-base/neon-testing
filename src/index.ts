@@ -6,7 +6,6 @@ import {
   EndpointType,
   type Branch,
 } from "@neondatabase/api-client";
-import { afterAll, beforeAll } from "vitest";
 
 /**
  * Rewrite the `sslmode` (and related) query params on a Neon connection URI.
@@ -50,7 +49,24 @@ function validateExpiresIn(expiresIn: number | null | undefined) {
   }
 }
 
+/**
+ * Test-runner lifecycle hooks
+ *
+ * Injected so the core stays runner-agnostic. Most users don't build these by
+ * hand — import the pre-wired factory from `neon-testing/vitest` or
+ * `neon-testing/bun`, which supply them automatically.
+ */
+export interface NeonTestingHooks {
+  beforeAll: (fn: () => void | Promise<void>) => void;
+  afterAll: (fn: () => void | Promise<void>) => void;
+}
+
 export interface NeonTestingOptions {
+  /**
+   * Test-runner lifecycle hooks (supplied by `neon-testing/vitest` or
+   * `neon-testing/bun`)
+   */
+  hooks: NeonTestingHooks;
   /**
    * The Neon API key, this is used to create and teardown test branches (required)
    *
@@ -134,8 +150,14 @@ export interface NeonTestingOptions {
   sslMode?: "verify-full" | "require";
 }
 
-/** Options for overriding test database setup (excludes apiKey) */
-export type NeonTestingOverrides = Omit<Partial<NeonTestingOptions>, "apiKey">;
+/** Factory options without the injected hooks (used by the per-runner entries) */
+export type NeonTestingConfig = Omit<NeonTestingOptions, "hooks">;
+
+/** Options for overriding test database setup (excludes apiKey and hooks) */
+export type NeonTestingOverrides = Omit<
+  Partial<NeonTestingOptions>,
+  "apiKey" | "hooks"
+>;
 
 /**
  * Factory function that creates a Neon test database setup/teardown function
@@ -148,8 +170,8 @@ export type NeonTestingOverrides = Omit<Partial<NeonTestingOptions>, "apiKey">;
  *
  * @example
  * ```ts
- * // neon-testing.ts
- * import { makeNeonTesting } from "neon-testing";
+ * // neon-testing.ts — use the pre-wired entry for your runner
+ * import { makeNeonTesting } from "neon-testing/vitest"; // or "neon-testing/bun"
  *
  * export const neonTesting = makeNeonTesting({
  *   apiKey: "apiKey",
@@ -318,7 +340,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       branch = undefined;
     }
 
-    beforeAll(async () => {
+    factoryOptions.hooks.beforeAll(async () => {
       process.env.DATABASE_URL = await withRetry(createBranch, {
         maxRetries: 8,
         baseDelayMs: 1000,
@@ -352,7 +374,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       }
     });
 
-    afterAll(async () => {
+    factoryOptions.hooks.afterAll(async () => {
       delete process.env.DATABASE_URL;
 
       // Close all tracked Neon WebSocket connections before deleting the branch
