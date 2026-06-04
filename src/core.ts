@@ -61,7 +61,14 @@ export interface NeonTestingHooks {
   afterAll: (fn: () => void | Promise<void>) => void;
 }
 
-export interface NeonTestingOptions {
+/**
+ * Configuration for the Neon test-branch factory.
+ *
+ * `hooks` are injected by the per-runner entry (`neon-testing/vitest` or
+ * `neon-testing/bun`); the remaining fields control how each test branch is
+ * created and torn down.
+ */
+export interface MakeNeonTestingCoreOptions {
   /**
    * Test-runner lifecycle hooks (supplied by `neon-testing/vitest` or
    * `neon-testing/bun`)
@@ -150,49 +157,42 @@ export interface NeonTestingOptions {
   sslMode?: "verify-full" | "require";
 }
 
-/** Factory options without the injected hooks (used by the per-runner entries) */
-export type NeonTestingConfig = Omit<NeonTestingOptions, "hooks">;
+/** Options for the `makeNeonTesting` factories — core options minus the injected hooks */
+export type MakeNeonTestingOptions = Omit<MakeNeonTestingCoreOptions, "hooks">;
 
-/** Options for overriding test database setup (excludes apiKey and hooks) */
-export type NeonTestingOverrides = Omit<
-  Partial<NeonTestingOptions>,
-  "apiKey" | "hooks"
+/** Per-file overrides accepted by the returned `neonTesting()` function */
+export type NeonTestingOptions = Partial<
+  Omit<MakeNeonTestingOptions, "apiKey">
 >;
 
 /**
- * Factory function that creates a Neon test database setup/teardown function
- * for Vitest test suites.
+ * Low-level factory that creates a Neon test-branch setup/teardown function.
+ * Runner-agnostic — you inject the lifecycle hooks via `options.hooks`.
  *
- * @param factoryOptions - Configuration options (see {@link NeonTestingOptions})
+ * Most users want a pre-wired entry instead: `neon-testing/vitest` or
+ * `neon-testing/bun`. Reach for this core factory only for other runners
+ * (jest, node:test, …).
+ *
+ * @param factoryOptions - see {@link MakeNeonTestingCoreOptions}
  * @returns A setup/teardown function with attached utilities:
- *  - `deleteAllTestBranches()` - Cleanup method to delete all test branches
- *  - `api` - Direct access to the Neon API client
+ *  - `deleteAllTestBranches()` - delete all test branches
+ *  - `api` - the Neon API client
  *
  * @example
  * ```ts
- * // neon-testing.ts — use the pre-wired entry for your runner
- * import { makeNeonTesting } from "neon-testing/vitest"; // or "neon-testing/bun"
+ * import { beforeAll, afterAll } from "vitest"; // or any runner
+ * import { makeNeonTestingCore } from "neon-testing/core";
  *
- * export const neonTesting = makeNeonTesting({
- *   apiKey: "apiKey",
- *   projectId: "projectId",
- * });
- * ```
- *
- * @example
- * ```ts
- * // my-test.test.ts
- * import { neonTesting } from "./neon-testing";
- *
- * const getBranch = neonTesting();
- *
- * test("my test", () => {
- *   const branch = getBranch();
- *   console.log(branch.id);
+ * export const neonTesting = makeNeonTestingCore({
+ *   apiKey: process.env.NEON_API_KEY!,
+ *   projectId: process.env.NEON_PROJECT_ID!,
+ *   hooks: { beforeAll, afterAll },
  * });
  * ```
  */
-export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
+export function makeNeonTestingCore(
+  factoryOptions: MakeNeonTestingCoreOptions,
+) {
   // Validate factory options
   validateExpiresIn(factoryOptions.expiresIn);
 
@@ -220,20 +220,20 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
   }
 
   /**
-   * Setup/teardown function for Vitest test suites
+   * Setup/teardown function for a test file.
    *
-   * Registers Vitest lifecycle hooks that:
+   * Registers lifecycle hooks (via the injected `hooks`) that:
    * - Create an isolated test branch from your parent branch
    * - Set `DATABASE_URL` environment variable to the test branch connection URI
    * - Automatically delete the test branch after tests complete (unless `deleteBranch: false`)
    * - Automatically expire branches after 10 minutes for cleanup (unless `expiresIn: null`)
    *
-   * @param overrides - Optional overrides for the factory options
+   * @param overrides - Optional per-file overrides for the factory options
    * @returns A function that provides access to the current Neon branch object
    */
   const neonTesting = (
     /** Override any factory options except apiKey */
-    overrides?: NeonTestingOverrides,
+    overrides?: NeonTestingOptions,
   ) => {
     // Validate overrides
     if (overrides?.expiresIn !== undefined) {

@@ -1,13 +1,13 @@
 /// <reference types="bun" />
 import { beforeAll, afterAll } from "bun:test";
-import { makeNeonTesting as makeNeonTestingCore } from "./index";
-import type { NeonTestingConfig } from "./index";
+import { makeNeonTestingCore } from "./core";
+import type { MakeNeonTestingOptions } from "./core";
 
-export type { NeonTestingConfig, NeonTestingOverrides } from "./index";
+export type { MakeNeonTestingOptions, NeonTestingOptions } from "./core";
 
 /**
- * Create a Neon test branch factory wired to Bun's lifecycle hooks.
+ * Create a Neon test-branch factory wired to Bun's lifecycle hooks.
  */
-export function makeNeonTesting(config: NeonTestingConfig) {
-  return makeNeonTestingCore({ ...config, hooks: { beforeAll, afterAll } });
+export function makeNeonTesting(options: MakeNeonTestingOptions) {
+  return makeNeonTestingCore({ ...options, hooks: { beforeAll, afterAll } });
 }

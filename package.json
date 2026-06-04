@@ -15,7 +15,7 @@
   "bugs": "https://github.com/starmode-base/neon-testing/issues",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
+    "./core": "./src/core.ts",
     "./vitest": "./src/vitest.ts",
     "./bun": "./src/bun.ts",
     "./utils": "./src/utils.ts",
