@@ -99,6 +99,28 @@ test("waits longer between 423 retries and gives up after maxRetries", async () 
   expect(fn).toHaveBeenCalledTimes(4);
 });
 
+test("surfaces Neon API details when a 423 carrying a code exhausts retries", async () => {
+  const lockedWithCode = {
+    response: {
+      status: 423,
+      data: {
+        code: "RESOURCE_LOCKED",
+        message: "project has too many running operations",
+      },
+    },
+  };
+  const fn = vi.fn().mockRejectedValue(lockedWithCode);
+
+  const promise = withRetry(fn, { maxRetries: 3, baseDelayMs: 10 });
+  const rejects = expect(promise).rejects.toThrow(
+    "Neon API error - HTTP 423 - RESOURCE_LOCKED - project has too many running operations",
+  );
+  await vi.runAllTimersAsync();
+  await rejects;
+
+  expect(fn).toHaveBeenCalledTimes(3);
+});
+
 test("does not retry non-423 errors and surfaces Neon API details", async () => {
   const apiError = {
     response: {
