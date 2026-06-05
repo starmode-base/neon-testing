@@ -22,9 +22,15 @@ test("rethrows the same message from a non-Neon stack", () => {
     "Error: Connection terminated unexpectedly\n    at Connection (/app/node_modules/pg/lib/client.js:1:1)",
   );
 
-  expect(() => neonWsErrorHandler(error)).toThrow(
-    "Connection terminated unexpectedly",
-  );
+  let thrown: unknown;
+
+  try {
+    neonWsErrorHandler(error);
+  } catch (caught) {
+    thrown = caught;
+  }
+
+  expect(thrown).toBe(error);
 });
 
 test("rethrows unrelated errors from the Neon stack", () => {
@@ -33,5 +39,45 @@ test("rethrows unrelated errors from the Neon stack", () => {
     "Error: Something else entirely\n    at Socket (/app/node_modules/@neondatabase/serverless/index.js:1:1)",
   );
 
-  expect(() => neonWsErrorHandler(error)).toThrow("Something else entirely");
+  let thrown: unknown;
+
+  try {
+    neonWsErrorHandler(error);
+  } catch (caught) {
+    thrown = caught;
+  }
+
+  expect(thrown).toBe(error);
+});
+
+test("rethrows when neither message nor stack match", () => {
+  const error = errorWith(
+    "Something else entirely",
+    "Error: Something else entirely\n    at Connection (/app/node_modules/pg/lib/client.js:1:1)",
+  );
+
+  let thrown: unknown;
+
+  try {
+    neonWsErrorHandler(error);
+  } catch (caught) {
+    thrown = caught;
+  }
+
+  expect(thrown).toBe(error);
+});
+
+test("rethrows the matching message when the stack is undefined", () => {
+  const error = new Error("Connection terminated unexpectedly");
+  delete error.stack;
+
+  let thrown: unknown;
+
+  try {
+    neonWsErrorHandler(error);
+  } catch (caught) {
+    thrown = caught;
+  }
+
+  expect(thrown).toBe(error);
 });

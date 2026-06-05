@@ -13,10 +13,12 @@ export function applySslMode(
 
   const url = new URL(uri);
   url.searchParams.set("sslmode", mode);
+
   if (mode === "require") {
     url.searchParams.set("uselibpqcompat", "true");
   } else {
     url.searchParams.delete("uselibpqcompat");
   }
+
   return url.toString();
 }
