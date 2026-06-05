@@ -6,48 +6,9 @@ import {
   EndpointType,
   type Branch,
 } from "@neondatabase/api-client";
-
-/**
- * Rewrite the `sslmode` (and related) query params on a Neon connection URI.
- *
- * Neon's API returns URIs with `sslmode=require`. In pg v9 /
- * pg-connection-string v3 this mode will adopt libpq semantics (encrypt
- * without CA verification) instead of today's effective `verify-full`.
- */
-function applySslMode(
-  uri: string,
-  mode: "verify-full" | "require" | undefined,
-): string {
-  if (mode === undefined) return uri;
-
-  const url = new URL(uri);
-  url.searchParams.set("sslmode", mode);
-  if (mode === "require") {
-    url.searchParams.set("uselibpqcompat", "true");
-  } else {
-    url.searchParams.delete("uselibpqcompat");
-  }
-  return url.toString();
-}
-
-/**
- * Validates the expiresIn option
- */
-function validateExpiresIn(expiresIn: number | null | undefined) {
-  if (expiresIn !== null && expiresIn !== undefined) {
-    if (!Number.isInteger(expiresIn)) {
-      throw new Error("expiresIn must be an integer");
-    }
-
-    if (expiresIn <= 0) {
-      throw new Error("expiresIn must be a positive integer");
-    }
-
-    if (expiresIn > 2592000) {
-      throw new Error("expiresIn must not exceed 30 days (2,592,000 seconds)");
-    }
-  }
-}
+import { applySslMode } from "./lib/ssl";
+import { validateExpiresIn } from "./lib/expires-in";
+import { neonWsErrorHandler } from "./lib/ws-error";
 
 /**
  * Test-runner lifecycle hooks
@@ -405,24 +366,6 @@ export function makeNeonTestingCore(
 
   return neonTesting;
 }
-
-/**
- * Error handler: Suppress Neon WebSocket "Connection terminated unexpectedly"
- * error
- */
-const neonWsErrorHandler = (error: Error) => {
-  const isNeonWsClose =
-    error.message.includes("Connection terminated unexpectedly") &&
-    error.stack?.includes("@neondatabase/serverless");
-
-  if (isNeonWsClose) {
-    // Swallow this specific Neon WS termination error
-    return;
-  }
-
-  // For any other error, detach and rethrow
-  throw error;
-};
 
 /**
  * Reusable API call wrapper with automatic retry on 423 errors with exponential
