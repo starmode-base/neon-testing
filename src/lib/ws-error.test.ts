@@ -10,7 +10,15 @@ function errorWith(message: string, stack: string) {
 test("swallows the Neon WebSocket termination error", () => {
   const error = errorWith(
     "Connection terminated unexpectedly",
-    "Error: Connection terminated unexpectedly\n    at Socket (/app/node_modules/@neondatabase/serverless/index.js:1:1)",
+    [
+      "Error: Connection terminated unexpectedly",
+      "    at Sn.<anonymous> (file:///app/node_modules/.bun/@neondatabase+serverless@1.1.0/node_modules/@neondatabase/serverless/index.mjs:1010:76)",
+      "    at Object.onceWrapper (file:///app/node_modules/.bun/@neondatabase+serverless@1.1.0/node_modules/@neondatabase/serverless/index.mjs:327:95)",
+      "    at Sn.emit (file:///app/node_modules/.bun/@neondatabase+serverless@1.1.0/node_modules/@neondatabase/serverless/index.mjs:317:79)",
+      "    at S.<anonymous> (file:///app/node_modules/.bun/@neondatabase+serverless@1.1.0/node_modules/@neondatabase/serverless/index.mjs:971:58)",
+      "    at TrackingWebSocket.<anonymous> (file:///app/node_modules/.bun/@neondatabase+serverless@1.1.0/node_modules/@neondatabase/serverless/index.mjs:403:74)",
+      "    at TLSSocket.onSocketClose (node:internal/deps/undici/undici:12062:7)",
+    ].join("\n"),
   );
 
   expect(() => neonWsErrorHandler(error)).not.toThrow();
