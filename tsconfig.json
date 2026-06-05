@@ -2,7 +2,6 @@
   "compilerOptions": {
     "moduleDetection": "force",
     "verbatimModuleSyntax": true,
-    "isolatedModules": true,
     "erasableSyntaxOnly": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
