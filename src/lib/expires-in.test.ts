@@ -12,11 +12,14 @@ test("accepts positive integers up to the 30-day boundary", () => {
   expect(() => validateExpiresIn(2592000)).not.toThrow();
 });
 
-test("rejects non-integers", () => {
-  expect(() => validateExpiresIn(600.5)).toThrow(
-    "expiresIn must be an integer",
-  );
-});
+test.each([600.5, NaN, Infinity, -Infinity])(
+  "rejects non-integer value %s",
+  (expiresIn) => {
+    expect(() => validateExpiresIn(expiresIn)).toThrow(
+      "expiresIn must be an integer",
+    );
+  },
+);
 
 test("rejects zero and negatives", () => {
   expect(() => validateExpiresIn(0)).toThrow("must be a positive integer");
