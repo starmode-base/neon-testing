@@ -1,1 +1,3 @@
 - When writing prose, don't narrate your own process
+- Never use title case
+- Test expected behavior, never implementation logic
