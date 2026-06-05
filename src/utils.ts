@@ -1,2 +1,2 @@
-export { lazySingleton } from "./singleton";
-export { createBarrier } from "./barrier";
+export { lazySingleton } from "./lib/singleton";
+export { createBarrier } from "./lib/barrier";

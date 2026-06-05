@@ -22,8 +22,12 @@
     "./setup": "./src/setup.ts"
   },
   "files": [
-    "src"
+    "src",
+    "!src/**/*.test.ts"
   ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "tsc --watch",
     "build": "bun run check # TODO: Remove after PR merge",
