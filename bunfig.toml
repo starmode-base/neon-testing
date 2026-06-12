@@ -1,2 +1,6 @@
 [install]
 linker = "isolated"
+
+[test]
+# `bun test` owns tests-bun/ only; Vitest owns everything else
+root = "tests-bun"
