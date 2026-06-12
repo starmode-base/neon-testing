@@ -5,12 +5,11 @@ on:
     tags:
       - "v*"
 
-permissions:
-  id-token: write # Required for Trusted Publishers (OIDC) - https://docs.npmjs.com/trusted-publishers
-  contents: write # Required for creating releases - https://github.com/softprops/action-gh-release?tab=readme-ov-file#permissions
-
 jobs:
-  publish:
+  # SECURITY: check runs repo code (tests, dev dependencies) and must not hold
+  # publish rights, so it is a separate job with read-only default permissions.
+  # The id-token/contents grants live on the publish job only.
+  check:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,12 +22,6 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "22.x"
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Update npm
-        # Trusted publishing requires npm 11.5.1 or later
-        # https://docs.npmjs.com/trusted-publishers
-        run: npm install -g npm@11.5.1
 
       - name: Setup Bun
         # https://github.com/oven-sh/setup-bun
@@ -52,6 +45,43 @@ jobs:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
           NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
         run: bun run check
+
+  publish:
+    needs: check
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write # Required for Trusted Publishers (OIDC) - https://docs.npmjs.com/trusted-publishers
+      contents: write # Required for creating releases - https://github.com/softprops/action-gh-release?tab=readme-ov-file#permissions
+
+    steps:
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        # https://github.com/actions/setup-node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22.x"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Update npm
+        # Trusted publishing requires npm 11.5.1 or later
+        # https://docs.npmjs.com/trusted-publishers
+        run: npm install -g npm@11.5.1
+
+      - name: Verify tag matches package.json
+        # The git tag drives the GitHub release, package.json drives npm
+        # publish - refuse to release if they disagree (e.g. a hand-pushed tag
+        # on the wrong commit)
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          PKG_VERSION=$(jq -r .version package.json)
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag v$TAG_VERSION does not match package.json version $PKG_VERSION"
+            exit 1
+          fi
 
       - name: Determine npm tag
         id: meta
