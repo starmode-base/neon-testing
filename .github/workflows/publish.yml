@@ -6,12 +6,15 @@ on:
       - "v*"
 
 jobs:
-  # SECURITY: check runs repo code (tests, dev dependencies) and must not hold
-  # publish rights, so it is a separate job with read-only default permissions.
-  # The id-token/contents grants live on the publish job only.
+  # Keep in sync with the check job in test.yml. Differs only in what is
+  # event-specific there: the `if` skip guard and the checkout `ref` (here the
+  # default checkout is the tagged commit). The id-token/contents grants live
+  # on the publish job only.
   check:
     runs-on: ubuntu-latest
 
+    # SECURITY: this job runs repo code (tests, dev dependencies) and must not
+    # hold publish rights - never give it a write-capable GITHUB_TOKEN
     permissions:
       contents: read
 
@@ -19,6 +22,10 @@ jobs:
       - name: Checkout
         # https://github.com/actions/checkout
         uses: actions/checkout@v6
+        with:
+          # Nothing after clone needs git auth - don't leave a token in
+          # .git/config for repo code to read
+          persist-credentials: false
 
       - name: Setup Node.js
         # https://github.com/actions/setup-node

@@ -16,27 +16,32 @@ concurrency:
   group: test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request_target' }}
 
-# SECURITY: this workflow runs fork code (after approval) - never give it a
-# write-capable GITHUB_TOKEN
-permissions:
-  contents: read
-
 jobs:
-  test:
+  # Keep in sync with the check job in publish.yml. Differs only in what is
+  # event-specific here: the `if` skip guard (on tag pushes the head commit is
+  # the version bump, so publish.yml must not carry it or its check would never
+  # run) and the checkout `ref` (PR-head logic is meaningless on tag pushes)
+  check:
     # Skip version-bump commits ("release: vX.Y.Z", set by the release scripts
     # in package.json) - publish.yml already checks the same commit via its tag
     if: "${{ !startsWith(github.event.head_commit.message, 'release: v') }}"
     runs-on: ubuntu-latest
 
+    # SECURITY: this job runs repo code (tests, dev dependencies) - including
+    # fork code after approval - never give it a write-capable GITHUB_TOKEN
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout
         # https://github.com/actions/checkout
-        # For pull_request_target, explicitly checkout the PR head to test the contributor's code
         uses: actions/checkout@v6
         with:
+          # For pull_request_target, check out the PR head to test the
+          # contributor's code; for push events this equals the event commit
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           # Nothing after clone needs git auth - don't leave a token in
-          # .git/config for fork code to read
+          # .git/config for repo code to read
           persist-credentials: false
 
       - name: Setup Node.js
