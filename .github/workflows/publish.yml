@@ -12,6 +12,9 @@ jobs:
   check:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout
         # https://github.com/actions/checkout
@@ -21,7 +24,7 @@ jobs:
         # https://github.com/actions/setup-node
         uses: actions/setup-node@v6
         with:
-          node-version: "22.x"
+          node-version: "24.x"
 
       - name: Setup Bun
         # https://github.com/oven-sh/setup-bun
@@ -61,15 +64,12 @@ jobs:
 
       - name: Setup Node.js
         # https://github.com/actions/setup-node
+        # Node 24 bundles npm >= 11.5.1, required for Trusted Publishers
+        # https://docs.npmjs.com/trusted-publishers
         uses: actions/setup-node@v6
         with:
-          node-version: "22.x"
+          node-version: "24.x"
           registry-url: "https://registry.npmjs.org"
-
-      - name: Update npm
-        # Trusted publishing requires npm 11.5.1 or later
-        # https://docs.npmjs.com/trusted-publishers
-        run: npm install -g npm@11.5.1
 
       - name: Verify tag matches package.json
         # The git tag drives the GitHub release, package.json drives npm

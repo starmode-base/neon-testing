@@ -10,10 +10,16 @@ on:
   pull_request_target:
     branches: [main]
 
-# Cancel superseded runs of the same PR/branch to avoid piling up Neon branches
+# Cancel superseded runs of the same PR to avoid piling up Neon branches; main
+# pushes queue instead so every main commit keeps a completed run
 concurrency:
   group: test-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request_target' }}
+
+# SECURITY: this workflow runs fork code (after approval) - never give it a
+# write-capable GITHUB_TOKEN
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -29,12 +35,15 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          # Nothing after clone needs git auth - don't leave a token in
+          # .git/config for fork code to read
+          persist-credentials: false
 
       - name: Setup Node.js
         # https://github.com/actions/setup-node
         uses: actions/setup-node@v6
         with:
-          node-version: "22.x"
+          node-version: "24.x"
 
       - name: Setup Bun
         # https://github.com/oven-sh/setup-bun
