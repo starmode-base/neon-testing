@@ -4,3 +4,10 @@ linker = "isolated"
 [test]
 # `bun test` owns tests-bun/ only; Vitest owns everything else
 root = "tests-bun"
+# poison simulates a pre-set DATABASE_URL, neon-testing/setup must clear it,
+# capture snapshots the result for the preload test (order matters)
+preload = [
+  "./tests-bun/poison-database-url.ts",
+  "neon-testing/setup",
+  "./tests-bun/capture-database-url.ts",
+]

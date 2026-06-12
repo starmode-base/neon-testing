@@ -31,7 +31,8 @@
   "scripts": {
     "dev": "tsc --watch",
     "build": "bun run check # TODO: Remove after PR merge",
-    "check": "prettier --check . && tsc && bun run test",
+    "check": "prettier --check . && tsc && bun run test:drift && bun run test",
+    "test:drift": "diff -r -x neon-testing.ts tests-bun tests-vitest",
     "format": "prettier --write .",
     "test": "vitest run && bun test",
     "test:unit": "vitest run src",
