@@ -1,7 +1,7 @@
 import { expect, test, neonTesting } from "./neon-testing";
 import { Pool } from "@neondatabase/serverless";
 
-neonTesting({ autoCloseWebSockets: true });
+neonTesting();
 
 test("creates a branch and exposes a working DATABASE_URL", async () => {
   expect(process.env.DATABASE_URL).toBeDefined();
