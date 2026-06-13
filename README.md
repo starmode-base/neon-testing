@@ -159,20 +159,28 @@ Source: [`examples/recommended.test.ts`](examples/recommended.test.ts)
 
 ## Drivers
 
-This library works with any database driver that supports Neon Postgres and Vitest. The examples below demonstrate connection management, transaction support, and test isolation patterns for some popular drivers.
+This library works with any database driver that supports Neon Postgres.
 
-**IMPORTANT:** For [Neon WebSocket drivers](https://neon.com/docs/serverless/serverless-driver), enable `autoCloseWebSockets` in your `makeNeonTesting()` or `neonTesting()` configuration. This automatically closes WebSocket connections when deleting test branches, preventing connection termination errors.
+### Closing connections
+
+Some drivers keep a connection open after a test finishes — [Neon's WebSocket driver](https://neon.com/docs/serverless/serverless-driver#use-the-driver-over-websockets) and [node-postgres](https://www.npmjs.com/package/pg). If the test branch is deleted while a connection is still open, the driver errors. Avoid it in one of three ways:
+
+- close the connection yourself (e.g. `await pool.end()`)
+- enable `autoCloseWebSockets` (WebSocket driver only, Vitest only)
+- keep the branch with `deleteBranch: false`
+
+[Neon's HTTP driver](https://neon.com/docs/serverless/serverless-driver#use-the-driver-over-http) and [Postgres.js](https://www.npmjs.com/package/postgres) close their own connections, so they need none of this.
 
 ### Examples
 
-- [Neon serverless WebSocket](examples/drivers/ws-neon.test.ts)
-- [Neon serverless WebSocket + Drizzle](examples/drivers/ws-neon-drizzle.test.ts)
-- [Neon serverless HTTP](examples/drivers/http-neon.test.ts)
-- [Neon serverless HTTP + Drizzle](examples/drivers/http-neon-drizzle.test.ts)
-- [node-postgres](examples/drivers/tcp-pg.test.ts)
-- [node-postgres + Drizzle](examples/drivers/tcp-pg-drizzle.test.ts)
-- [Postgres.js](examples/drivers/tcp-postgres.test.ts)
-- [Postgres.js + Drizzle](examples/drivers/tcp-postgres-drizzle.test.ts)
+- [Neon serverless WebSocket](tests-vitest/drivers/ws-neon.test.ts)
+- [Neon serverless WebSocket + Drizzle](tests-vitest/drivers/ws-neon-drizzle.test.ts)
+- [Neon serverless HTTP](tests-vitest/drivers/http-neon.test.ts)
+- [Neon serverless HTTP + Drizzle](tests-vitest/drivers/http-neon-drizzle.test.ts)
+- [node-postgres](tests-vitest/drivers/tcp-pg.test.ts)
+- [node-postgres + Drizzle](tests-vitest/drivers/tcp-pg-drizzle.test.ts)
+- [Postgres.js](tests-vitest/drivers/tcp-postgres.test.ts)
+- [Postgres.js + Drizzle](tests-vitest/drivers/tcp-postgres-drizzle.test.ts)
 
 ## Configuration
 
