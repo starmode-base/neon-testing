@@ -41,7 +41,9 @@ Each test file runs against its own isolated PostgreSQL database (Neon branch), 
 
 ### Test isolation
 
-Tests in the same file share a single database instance (Neon branch). This means test files are fully isolated from each other, but individual tests within a file are intentionally not isolated. This works because Vitest runs test files in [parallel](https://vitest.dev/guide/parallelism.html), while tests within each file run sequentially.
+Each test file runs against its own database instance (Neon branch), so test files are fully isolated from each other. Tests within a single file share that branch and run sequentially — individual tests within a file are intentionally not isolated.
+
+Vitest and Bun differ in how they execute files. Vitest runs each file in its own process, [in parallel](https://vitest.dev/guide/parallelism.html), while Bun runs every file in [a single shared process](https://bun.com/docs/test), one after another by default. File-level isolation is the same on both — each file gets its own branch — but Vitest creates those branches concurrently whereas Bun creates them one at a time.
 
 If you prefer individual tests to be isolated, you can [reset the database](examples/isolated.test.ts) in a `beforeEach` lifecycle hook.
 
