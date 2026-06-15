@@ -77,6 +77,9 @@ export interface MakeNeonTestingCoreOptions {
    * Suppresses the specific Neon WebSocket "Connection terminated unexpectedly"
    * error that may surface when deleting a branch with open WebSocket
    * connections
+   *
+   * Vitest only — under Bun the uncaughtException suppression does not
+   * intercept, so close connections explicitly there instead.
    */
   autoCloseWebSockets?: boolean;
   /**

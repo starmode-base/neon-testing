@@ -8,6 +8,7 @@ makeNeonTesting({
   apiKey: process.env.NEON_API_KEY!,
   projectId: process.env.NEON_PROJECT_ID!,
   // Recommended for Neon WebSocket drivers to automatically close connections
+  // (Vitest only)
   autoCloseWebSockets: true,
 })();
 

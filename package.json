@@ -1,12 +1,14 @@
 {
   "name": "neon-testing",
   "version": "2.7.0",
-  "description": "A Vitest utility for seamless integration tests with Neon Postgres",
+  "description": "A testing utility for seamless integration tests with Neon Postgres, for Vitest and Bun Test.",
   "keywords": [
     "neon",
     "postgres",
     "postgresql",
-    "vitest"
+    "vitest",
+    "bun",
+    "testing"
   ],
   "author": "Mikael Lirbank",
   "license": "MIT",

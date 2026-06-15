@@ -5,7 +5,9 @@
 [![GitHub release](https://img.shields.io/github/v/release/starmode-base/neon-testing)](https://github.com/starmode-base/neon-testing/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
-A [Vitest](https://vitest.dev/) utility for seamless integration tests with [Neon Postgres](https://neon.com/). <!-- A [STΛR MODΞ](https://starmode.dev) open-source project. -->
+A testing utility for seamless integration tests with [Neon Postgres](https://neon.com/), for [Vitest](https://vitest.dev/) and [Bun Test](https://bun.com/docs/cli/test).
+
+<!-- A [STΛR MODΞ](https://starmode.dev) open-source project. -->
 
 Each test file runs against its own isolated PostgreSQL database (Neon branch), ensuring clean, parallel, and reproducible testing of code that interacts with a database. Because it uses a real, isolated clone of your production database, you can test code logic that depends on database features, such as transaction rollbacks, unique constraints, and more.
 
@@ -61,7 +63,11 @@ Test branches are automatically deleted after your tests complete. As a safety n
 ### Install
 
 ```sh
+# Vitest
 bun add -d neon-testing vitest
+
+# Bun Test
+bun add -d neon-testing
 ```
 
 ### Minimal example
@@ -69,7 +75,7 @@ bun add -d neon-testing vitest
 ```ts
 // minimal.test.ts
 import { expect, test } from "vitest";
-import { makeNeonTesting } from "neon-testing";
+import { makeNeonTesting } from "neon-testing/vitest";
 import { Pool } from "@neondatabase/serverless";
 
 // Enable Neon test branch for this test file
@@ -77,6 +83,7 @@ makeNeonTesting({
   apiKey: process.env.NEON_API_KEY!,
   projectId: process.env.NEON_PROJECT_ID!,
   // Recommended for Neon WebSocket drivers to automatically close connections
+  // (Vitest only)
   autoCloseWebSockets: true,
 })();
 
@@ -95,21 +102,29 @@ Source: [`examples/minimal.test.ts`](examples/minimal.test.ts)
 
 ### Recommended usage
 
-#### 1. Plugin setup
+#### 1. Setup
 
-First, add the Vite plugin to clear any existing `DATABASE_URL` environment variable before tests run, ensuring tests use isolated test databases.
+Register `neon-testing/setup` so any existing `DATABASE_URL` is cleared before tests run. A test file that forgets to enable branching then fails loudly instead of silently writing to a real database.
 
 ```ts
 // vitest.config.ts
 import { defineConfig } from "vitest/config";
-import { neonTesting } from "neon-testing/vite";
 
 export default defineConfig({
-  plugins: [neonTesting()],
+  test: {
+    setupFiles: ["neon-testing/setup"],
+  },
 });
 ```
 
-This plugin is recommended but not required. Without it, tests might accidentally use your existing `DATABASE_URL` (from `.env` files or environment variables) instead of the isolated test databases that Neon Testing creates. This can happen if you forget to call `neonTesting()` in a test file where database writes happen.
+For Bun, add it to `bunfig.toml` instead:
+
+```toml
+[test]
+preload = ["neon-testing/setup"]
+```
+
+Recommended but not required. Without it, a test file that forgets to call `neonTesting()` could fall back to your real `DATABASE_URL` (from `.env` or the environment) instead of an isolated test branch.
 
 #### 2. Configuration
 
@@ -117,7 +132,7 @@ Use the `makeNeonTesting` factory to generate a lifecycle function for your test
 
 ```ts
 // neon-testing.ts
-import { makeNeonTesting } from "neon-testing";
+import { makeNeonTesting } from "neon-testing/vitest"; // or "neon-testing/bun"
 
 // Export a configured lifecycle function to use in test files
 export const neonTesting = makeNeonTesting({
@@ -141,6 +156,7 @@ import { Pool } from "@neondatabase/serverless";
 // Enable Neon test branch for this test file
 neonTesting({
   // Recommended for Neon WebSocket drivers to automatically close connections
+  // (Vitest only)
   autoCloseWebSockets: true,
 });
 
@@ -189,10 +205,10 @@ You configure Neon Testing in two places:
 - **Base settings** in `makeNeonTesting()`
 - **Optional overrides** when calling the returned function (e.g., `neonTesting()`)
 
-Configure these in `makeNeonTesting()` and optionally override per test file when calling the returned function.
+Configure these in `makeNeonTesting()`; every option except `apiKey` can also be overridden per test file when calling the returned function.
 
 ```ts
-export interface NeonTestingOptions {
+export interface MakeNeonTestingOptions {
   /**
    * The Neon API key, this is used to create and teardown test branches (required)
    *
@@ -234,6 +250,8 @@ export interface NeonTestingOptions {
    * Suppresses the specific Neon WebSocket "Connection terminated unexpectedly"
    * error that may surface when deleting a branch with open WebSocket
    * connections
+   *
+   * Vitest only.
    */
   autoCloseWebSockets?: boolean;
   /**
@@ -283,7 +301,7 @@ Configure the base settings in `makeNeonTesting()`:
 
 ```ts
 // neon-testing.ts
-import { makeNeonTesting } from "neon-testing";
+import { makeNeonTesting } from "neon-testing/vitest";
 
 export const neonTesting = makeNeonTesting({
   apiKey: process.env.NEON_API_KEY!,
@@ -383,7 +401,9 @@ It's easy to run Neon integration tests in CI/CD pipelines:
 
 ## API Reference
 
-### Main exports (`neon-testing`)
+### Runner entry (`neon-testing/vitest` or `neon-testing/bun`)
+
+Both entries export the same `makeNeonTesting`; they differ only in which runner's `beforeAll`/`afterAll` hooks they wire up. (For other runners, `neon-testing/core` takes the hooks directly.)
 
 #### makeNeonTesting(options)
 
@@ -391,7 +411,7 @@ The factory function that creates a configured lifecycle function for your tests
 
 ```ts
 // neon-testing.ts
-import { makeNeonTesting } from "neon-testing";
+import { makeNeonTesting } from "neon-testing/vitest";
 
 export const neonTesting = makeNeonTesting({
   apiKey: process.env.NEON_API_KEY!,
@@ -444,24 +464,11 @@ test("access branch information", () => {
 
 See the [Neon Branch API documentation](https://api-docs.neon.tech/reference/getprojectbranch) for all available properties.
 
-### Vite plugin (`neon-testing/vite`)
+### Setup (`neon-testing/setup`)
 
-The Vite plugin clears any existing `DATABASE_URL` environment variable before tests run, ensuring tests use isolated test databases.
+A zero-config preload that clears `DATABASE_URL` before tests run, so a file that forgets to call `neonTesting()` can't reach a real database. Register it with your runner — Vitest `setupFiles` or Bun `bunfig` `preload` (see [Recommended usage](#recommended-usage)).
 
-```ts
-import { defineConfig } from "vitest/config";
-import { neonTesting } from "neon-testing/vite";
-
-export default defineConfig({
-  plugins: [neonTesting()],
-});
-```
-
-**Options:**
-
-- `debug` (boolean, default: `false`) - Enable debug logging
-
-This plugin is recommended but not required. Without it, tests might accidentally use your existing `DATABASE_URL` instead of isolated test databases.
+Set `NEON_TESTING_DEBUG=true` to log when it clears a value.
 
 ### Utilities (`neon-testing/utils`)
 
