@@ -6,51 +6,36 @@ import {
   EndpointType,
   type Branch,
 } from "@neondatabase/api-client";
-import { afterAll, beforeAll } from "vitest";
+import { applySslMode } from "./lib/ssl";
+import { validateExpiresIn } from "./lib/expires-in";
+import { neonWsErrorHandler } from "./lib/ws-error";
+import { withRetry } from "./lib/with-retry";
 
 /**
- * Rewrite the `sslmode` (and related) query params on a Neon connection URI.
+ * Test-runner lifecycle hooks
  *
- * Neon's API returns URIs with `sslmode=require`. In pg v9 /
- * pg-connection-string v3 this mode will adopt libpq semantics (encrypt
- * without CA verification) instead of today's effective `verify-full`.
+ * Injected so the core stays runner-agnostic. Most users don't build these by
+ * hand — import the pre-wired factory from `neon-testing/vitest` or
+ * `neon-testing/bun`, which supply them automatically.
  */
-function applySslMode(
-  uri: string,
-  mode: "verify-full" | "require" | undefined,
-): string {
-  if (mode === undefined) return uri;
-
-  const url = new URL(uri);
-  url.searchParams.set("sslmode", mode);
-  if (mode === "require") {
-    url.searchParams.set("uselibpqcompat", "true");
-  } else {
-    url.searchParams.delete("uselibpqcompat");
-  }
-  return url.toString();
+export interface NeonTestingHooks {
+  beforeAll: (fn: () => void | Promise<void>) => void;
+  afterAll: (fn: () => void | Promise<void>) => void;
 }
 
 /**
- * Validates the expiresIn option
+ * Configuration for the Neon test-branch factory.
+ *
+ * `hooks` are injected by the per-runner entry (`neon-testing/vitest` or
+ * `neon-testing/bun`); the remaining fields control how each test branch is
+ * created and torn down.
  */
-function validateExpiresIn(expiresIn: number | null | undefined) {
-  if (expiresIn !== null && expiresIn !== undefined) {
-    if (!Number.isInteger(expiresIn)) {
-      throw new Error("expiresIn must be an integer");
-    }
-
-    if (expiresIn <= 0) {
-      throw new Error("expiresIn must be a positive integer");
-    }
-
-    if (expiresIn > 2592000) {
-      throw new Error("expiresIn must not exceed 30 days (2,592,000 seconds)");
-    }
-  }
-}
-
-export interface NeonTestingOptions {
+export interface MakeNeonTestingCoreOptions {
+  /**
+   * Test-runner lifecycle hooks (supplied by `neon-testing/vitest` or
+   * `neon-testing/bun`)
+   */
+  hooks: NeonTestingHooks;
   /**
    * The Neon API key, this is used to create and teardown test branches (required)
    *
@@ -92,6 +77,9 @@ export interface NeonTestingOptions {
    * Suppresses the specific Neon WebSocket "Connection terminated unexpectedly"
    * error that may surface when deleting a branch with open WebSocket
    * connections
+   *
+   * Vitest only — under Bun the uncaughtException suppression does not
+   * intercept, so close connections explicitly there instead.
    */
   autoCloseWebSockets?: boolean;
   /**
@@ -134,43 +122,42 @@ export interface NeonTestingOptions {
   sslMode?: "verify-full" | "require";
 }
 
-/** Options for overriding test database setup (excludes apiKey) */
-export type NeonTestingOverrides = Omit<Partial<NeonTestingOptions>, "apiKey">;
+/** Options for the `makeNeonTesting` factories — core options minus the injected hooks */
+export type MakeNeonTestingOptions = Omit<MakeNeonTestingCoreOptions, "hooks">;
+
+/** Per-file overrides accepted by the returned `neonTesting()` function */
+export type NeonTestingOptions = Partial<
+  Omit<MakeNeonTestingOptions, "apiKey">
+>;
 
 /**
- * Factory function that creates a Neon test database setup/teardown function
- * for Vitest test suites.
+ * Low-level factory that creates a Neon test-branch setup/teardown function.
+ * Runner-agnostic — you inject the lifecycle hooks via `options.hooks`.
  *
- * @param factoryOptions - Configuration options (see {@link NeonTestingOptions})
+ * Most users want a pre-wired entry instead: `neon-testing/vitest` or
+ * `neon-testing/bun`. Reach for this core factory only for other runners
+ * (jest, node:test, …).
+ *
+ * @param factoryOptions - see {@link MakeNeonTestingCoreOptions}
  * @returns A setup/teardown function with attached utilities:
- *  - `deleteAllTestBranches()` - Cleanup method to delete all test branches
- *  - `api` - Direct access to the Neon API client
+ *  - `deleteAllTestBranches()` - delete all test branches
+ *  - `api` - the Neon API client
  *
  * @example
  * ```ts
- * // neon-testing.ts
- * import { makeNeonTesting } from "neon-testing";
+ * import { beforeAll, afterAll } from "vitest"; // or any runner
+ * import { makeNeonTestingCore } from "neon-testing/core";
  *
- * export const neonTesting = makeNeonTesting({
- *   apiKey: "apiKey",
- *   projectId: "projectId",
- * });
- * ```
- *
- * @example
- * ```ts
- * // my-test.test.ts
- * import { neonTesting } from "./neon-testing";
- *
- * const getBranch = neonTesting();
- *
- * test("my test", () => {
- *   const branch = getBranch();
- *   console.log(branch.id);
+ * export const neonTesting = makeNeonTestingCore({
+ *   apiKey: process.env.NEON_API_KEY!,
+ *   projectId: process.env.NEON_PROJECT_ID!,
+ *   hooks: { beforeAll, afterAll },
  * });
  * ```
  */
-export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
+export function makeNeonTestingCore(
+  factoryOptions: MakeNeonTestingCoreOptions,
+) {
   // Validate factory options
   validateExpiresIn(factoryOptions.expiresIn);
 
@@ -198,20 +185,20 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
   }
 
   /**
-   * Setup/teardown function for Vitest test suites
+   * Setup/teardown function for a test file.
    *
-   * Registers Vitest lifecycle hooks that:
+   * Registers lifecycle hooks (via the injected `hooks`) that:
    * - Create an isolated test branch from your parent branch
    * - Set `DATABASE_URL` environment variable to the test branch connection URI
    * - Automatically delete the test branch after tests complete (unless `deleteBranch: false`)
    * - Automatically expire branches after 10 minutes for cleanup (unless `expiresIn: null`)
    *
-   * @param overrides - Optional overrides for the factory options
+   * @param overrides - Optional per-file overrides for the factory options
    * @returns A function that provides access to the current Neon branch object
    */
   const neonTesting = (
     /** Override any factory options except apiKey */
-    overrides?: NeonTestingOverrides,
+    overrides?: NeonTestingOptions,
   ) => {
     // Validate overrides
     if (overrides?.expiresIn !== undefined) {
@@ -247,9 +234,11 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       const { data } = await apiClient.createProjectBranch(options.projectId, {
         branch: {
           name: `test/${crypto.randomUUID()}`,
-          parent_id: options.parentBranchId,
-          init_source: options.schemaOnly ? "schema-only" : undefined,
-          expires_at: expiresAt,
+          ...(options.parentBranchId
+            ? { parent_id: options.parentBranchId }
+            : {}),
+          ...(options.schemaOnly ? { init_source: "schema-only" } : {}),
+          ...(expiresAt ? { expires_at: expiresAt } : {}),
         },
         endpoints: [{ type: EndpointType.ReadWrite }],
         annotation_value: {
@@ -316,7 +305,7 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       branch = undefined;
     }
 
-    beforeAll(async () => {
+    factoryOptions.hooks.beforeAll(async () => {
       process.env.DATABASE_URL = await withRetry(createBranch, {
         maxRetries: 8,
         baseDelayMs: 1000,
@@ -350,8 +339,8 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
       }
     });
 
-    afterAll(async () => {
-      process.env.DATABASE_URL = undefined;
+    factoryOptions.hooks.afterAll(async () => {
+      delete process.env.DATABASE_URL;
 
       // Close all tracked Neon WebSocket connections before deleting the branch
       if (options.autoCloseWebSockets && neonSockets) {
@@ -380,78 +369,4 @@ export function makeNeonTesting(factoryOptions: NeonTestingOptions) {
   neonTesting.api = apiClient;
 
   return neonTesting;
-}
-
-/**
- * Error handler: Suppress Neon WebSocket "Connection terminated unexpectedly"
- * error
- */
-const neonWsErrorHandler = (error: Error) => {
-  const isNeonWsClose =
-    error.message.includes("Connection terminated unexpectedly") &&
-    error.stack?.includes("@neondatabase/serverless");
-
-  if (isNeonWsClose) {
-    // Swallow this specific Neon WS termination error
-    return;
-  }
-
-  // For any other error, detach and rethrow
-  throw error;
-};
-
-/**
- * Reusable API call wrapper with automatic retry on 423 errors with exponential
- * backoff
- *
- * https://neon.com/docs/reference/typescript-sdk#error-handling
- * https://neon.com/docs/changelog/2022-07-20
- */
-async function withRetry<T>(
-  fn: () => Promise<T>,
-  options: {
-    maxRetries: number;
-    baseDelayMs: number;
-  },
-): Promise<T> {
-  if (!Number.isInteger(options.maxRetries) || options.maxRetries <= 0) {
-    throw new Error("maxRetries must be a positive integer");
-  }
-
-  if (!Number.isInteger(options.baseDelayMs) || options.baseDelayMs <= 0) {
-    throw new Error("baseDelayMs must be a positive integer");
-  }
-
-  for (let attempt = 1; attempt <= options.maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error: any) {
-      const status = error?.response?.status;
-
-      // Retry on 423 (resource locked) with exponential backoff
-      if (status === 423 && attempt < options.maxRetries) {
-        const delay = options.baseDelayMs * Math.pow(2, attempt - 1);
-
-        console.log(
-          `API call failed with 423, retrying in ${delay}ms (attempt ${attempt}/${options.maxRetries})`,
-        );
-        await new Promise((resolve) => setTimeout(resolve, delay));
-
-        continue;
-      }
-
-      // Surface Neon API error details that are otherwise buried in the Axios error
-      if (error?.response?.data?.code) {
-        const { code, message } = error.response.data;
-        throw new Error(
-          `Neon API error - HTTP ${status} - ${code} - ${message}`,
-          { cause: error },
-        );
-      }
-
-      // Non-API errors (network, timeouts, etc.) pass through as-is
-      throw error;
-    }
-  }
-  throw new Error("apiCallWithRetry reached unexpected end");
 }

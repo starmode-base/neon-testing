@@ -9,8 +9,7 @@
  *
  * https://www.npmjs.com/package/@neondatabase/serverless
  */
-import { describe, expect, test } from "vitest";
-import { neonTesting } from "../neon-testing";
+import { describe, expect, test, neonTesting } from "../neon-testing";
 import { Pool } from "@neondatabase/serverless";
 
 const cases = [
@@ -37,10 +36,10 @@ const cases = [
 ] as const;
 
 describe.each(cases)("Neon WebSocket (%s)", (endpoint, makeDb) => {
-  neonTesting({ endpoint, autoCloseWebSockets: true });
+  neonTesting({ endpoint });
 
   test("create table", async () => {
-    const { end, sql } = makeDb(process.env.DATABASE_URL!);
+    const { sql, end } = makeDb(process.env.DATABASE_URL!);
 
     await sql(`
       CREATE TABLE users (
@@ -60,11 +59,11 @@ describe.each(cases)("Neon WebSocket (%s)", (endpoint, makeDb) => {
     expect(users.rows).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
 
     // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    // await end();
+    await end();
   });
 
   test("tests are not isolated within a test file", async () => {
-    const { end, sql } = makeDb(process.env.DATABASE_URL!);
+    const { sql, end } = makeDb(process.env.DATABASE_URL!);
 
     const newUser = await sql(`
       INSERT INTO users (name)
@@ -81,11 +80,11 @@ describe.each(cases)("Neon WebSocket (%s)", (endpoint, makeDb) => {
     ]);
 
     // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    // await end();
+    await end();
   });
 
   test("interactive transactions are supported", async () => {
-    const { end, sql } = makeDb(process.env.DATABASE_URL!);
+    const { sql, end } = makeDb(process.env.DATABASE_URL!);
 
     try {
       await sql("BEGIN");
@@ -105,6 +104,6 @@ describe.each(cases)("Neon WebSocket (%s)", (endpoint, makeDb) => {
     ]);
 
     // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    // await end();
+    await end();
   });
 });

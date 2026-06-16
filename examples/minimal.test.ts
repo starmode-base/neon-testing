@@ -1,6 +1,6 @@
 // minimal.test.ts
 import { expect, test } from "vitest";
-import { makeNeonTesting } from "neon-testing";
+import { makeNeonTesting } from "neon-testing/vitest";
 import { Pool } from "@neondatabase/serverless";
 
 // Enable Neon test branch for this test file
@@ -8,6 +8,7 @@ makeNeonTesting({
   apiKey: process.env.NEON_API_KEY!,
   projectId: process.env.NEON_PROJECT_ID!,
   // Recommended for Neon WebSocket drivers to automatically close connections
+  // (Vitest only)
   autoCloseWebSockets: true,
 })();
 

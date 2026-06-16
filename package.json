@@ -1,12 +1,14 @@
 {
   "name": "neon-testing",
   "version": "2.7.0",
-  "description": "A Vitest utility for seamless integration tests with Neon Postgres",
+  "description": "A testing utility for seamless integration tests with Neon Postgres, for Vitest and Bun Test.",
   "keywords": [
     "neon",
     "postgres",
     "postgresql",
-    "vitest"
+    "vitest",
+    "bun",
+    "testing"
   ],
   "author": "Mikael Lirbank",
   "license": "MIT",
@@ -15,48 +17,61 @@
   "bugs": "https://github.com/starmode-base/neon-testing/issues",
   "type": "module",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./utils": {
-      "types": "./dist/utils.d.ts",
-      "import": "./dist/utils.js"
-    },
-    "./vite": {
-      "types": "./dist/vite-plugin.d.ts",
-      "import": "./dist/vite-plugin.js"
-    }
+    "./core": "./src/core.ts",
+    "./vitest": "./src/vitest.ts",
+    "./bun": "./src/bun.ts",
+    "./utils": "./src/utils.ts",
+    "./setup": "./src/setup.ts"
   },
   "files": [
-    "dist"
+    "src",
+    "!src/**/*.test.ts"
   ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "dev": "tsc -p tsconfig.build.json --watch",
-    "build": "rm -rf dist && tsc -p tsconfig.build.json && tsc && prettier --check . && vitest run",
+    "dev": "tsc --watch",
+    "build": "bun run check # TODO: Remove after PR merge",
+    "check": "prettier --check . && tsc && bun run check:drift && bun run test",
+    "check:drift": "diff -r -x neon-testing.ts tests-bun tests-vitest",
     "format": "prettier --write .",
-    "test": "vitest",
+    "test": "vitest run && bun test",
+    "test:unit": "vitest run src",
+    "test:unit:watch": "vitest src",
+    "test:examples": "vitest run examples",
+    "test:examples:watch": "vitest examples",
+    "test:vitest": "vitest run tests-vitest",
+    "test:vitest:watch": "vitest tests-vitest",
+    "test:bun": "bun test",
+    "test:bun:watch": "bun test --watch",
     "skills:update": "bunx skills add neondatabase/agent-skills",
     "clean:soft": "rm -rf node_modules dist && bun install",
     "clean:hard": "rm -rf node_modules dist bun.lock && bun install",
-    "release:patch": "bun pm version patch",
-    "release:minor": "bun pm version minor",
-    "release:major": "bun pm version major",
-    "release:beta": "bun pm version prerelease --preid=beta",
-    "release:beta:patch": "bun pm version prepatch --preid=beta",
-    "release:beta:minor": "bun pm version preminor --preid=beta",
-    "release:beta:major": "bun pm version premajor --preid=beta",
+    "release:patch": "bun pm version patch --message 'release: v%s'",
+    "release:minor": "bun pm version minor --message 'release: v%s'",
+    "release:major": "bun pm version major --message 'release: v%s'",
+    "release:beta": "bun pm version prerelease --preid=beta --message 'release: v%s'",
+    "release:beta:patch": "bun pm version prepatch --preid=beta --message 'release: v%s'",
+    "release:beta:minor": "bun pm version preminor --preid=beta --message 'release: v%s'",
+    "release:beta:major": "bun pm version premajor --preid=beta --message 'release: v%s'",
+    "preversion": "test \"$(git branch --show-current)\" = main && git pull --ff-only",
     "postversion": "git push --follow-tags"
   },
   "dependencies": {
     "@neondatabase/api-client": "^2.7.1"
   },
   "peerDependencies": {
-    "vite": "^7",
     "vitest": "^3 || ^4"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@neondatabase/serverless": "^1.1.0",
+    "@types/bun": "^1.3.14",
     "@types/pg": "^8.20.0",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
@@ -64,11 +79,7 @@
     "postgres": "^3.4.9",
     "prettier": "^3.8.3",
     "tiny-invariant": "^1.3.3",
-    "typescript": "^5.9.3",
-    "vite": "^7.3.5",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.8"
-  },
-  "browser": {
-    "./dist/vite-plugin.js": "./dist/browser-empty.js"
   }
 }

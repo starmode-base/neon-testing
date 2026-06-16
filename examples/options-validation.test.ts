@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { makeNeonTesting } from "neon-testing";
+import { makeNeonTesting } from "neon-testing/vitest";
 
 const projectId = process.env.NEON_PROJECT_ID!;
 

@@ -3,68 +3,43 @@
  *
  * Protocol:                                  | WebSocket
  * Driver:                                    | @neondatabase/serverless
- * ORM:                                       | drizzle-orm
+ * ORM:                                       | -
  * Interactive transactions                   | ✅
  * Automatic connection lifecycle management  | ⚠️ with `autoCloseWebSockets` flag
  *
  * https://www.npmjs.com/package/@neondatabase/serverless
- * https://www.npmjs.com/package/drizzle-orm
- * https://orm.drizzle.team/docs/get-started/neon-new
- * https://orm.drizzle.team/docs/connect-neon
  */
-import { describe, expect, test } from "vitest";
-import { neonTesting } from "../neon-testing";
+import { describe, expect, test, neonTesting } from "../neon-testing";
 import { Pool } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-serverless";
 
 const cases = [
   [
     "pooler",
     (url: string) => {
-      const db = drizzle(url);
+      const pool = new Pool({ connectionString: url });
       return {
-        sql: (query: string) => db.execute(query),
-        end: () => db.$client.end(),
+        sql: (query: string) => pool.query(query),
+        end: () => pool.end(),
       };
     },
   ],
   [
     "direct",
     (url: string) => {
-      const db = drizzle(url);
+      const pool = new Pool({ connectionString: url });
       return {
-        sql: (query: string) => db.execute(query),
-        end: () => db.$client.end(),
-      };
-    },
-  ],
-  [
-    "pooler",
-    (url: string) => {
-      const db = drizzle({ client: new Pool({ connectionString: url }) });
-      return {
-        sql: (query: string) => db.execute(query),
-        end: () => db.$client.end(),
-      };
-    },
-  ],
-  [
-    "direct",
-    (url: string) => {
-      const db = drizzle({ client: new Pool({ connectionString: url }) });
-      return {
-        sql: (query: string) => db.execute(query),
-        end: () => db.$client.end(),
+        sql: (query: string) => pool.query(query),
+        end: () => pool.end(),
       };
     },
   ],
 ] as const;
 
-describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
-  neonTesting({ endpoint, autoCloseWebSockets: true });
+describe.each(cases)("Neon WebSocket (%s)", (endpoint, makeDb) => {
+  neonTesting({ endpoint });
 
   test("create table", async () => {
-    const { end, sql } = makeDb(process.env.DATABASE_URL!);
+    const { sql, end } = makeDb(process.env.DATABASE_URL!);
 
     await sql(`
       CREATE TABLE users (
@@ -84,11 +59,11 @@ describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
     expect(users.rows).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
 
     // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    // await end();
+    await end();
   });
 
   test("tests are not isolated within a test file", async () => {
-    const { end, sql } = makeDb(process.env.DATABASE_URL!);
+    const { sql, end } = makeDb(process.env.DATABASE_URL!);
 
     const newUser = await sql(`
       INSERT INTO users (name)
@@ -105,11 +80,11 @@ describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
     ]);
 
     // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    // await end();
+    await end();
   });
 
   test("interactive transactions are supported", async () => {
-    const { end, sql } = makeDb(process.env.DATABASE_URL!);
+    const { sql, end } = makeDb(process.env.DATABASE_URL!);
 
     try {
       await sql("BEGIN");
@@ -129,6 +104,6 @@ describe.each(cases)("Drizzle Neon WebSocket (%s)", (endpoint, makeDb) => {
     ]);
 
     // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    // await end();
+    await end();
   });
 });

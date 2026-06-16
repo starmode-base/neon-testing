@@ -9,12 +9,11 @@
  *
  * https://www.npmjs.com/package/@neondatabase/serverless
  */
-import { describe, expect, test } from "vitest";
-import { neonTesting } from "../neon-testing";
+import { describe, expect, test, neonTesting } from "../neon-testing";
 import { neon } from "@neondatabase/serverless";
 import { lazySingleton } from "neon-testing/utils";
 
-const endpoints = ["pooler", "direct"] as const;
+const endpoints = [["pooler"], ["direct"]] as const;
 
 describe.each(endpoints)("Neon HTTP (%s)", (endpoint) => {
   neonTesting({ endpoint });

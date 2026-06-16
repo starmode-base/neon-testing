@@ -3,56 +3,69 @@
  *
  * Protocol:                                  | TCP
  * Driver:                                    | pg
- * ORM:                                       | -
+ * ORM:                                       | drizzle-orm
  * Interactive transactions                   | ✅
  * Automatic connection lifecycle management  | ❌
  *
  * https://www.npmjs.com/package/pg
+ * https://www.npmjs.com/package/drizzle-orm
+ * https://orm.drizzle.team/docs/get-started-postgresql#postgresjs
  */
-import { describe, expect, test } from "vitest";
-import { neonTesting } from "../neon-testing";
+import { describe, expect, test, neonTesting } from "../neon-testing";
 import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
 
-const endpoints = ["pooler", "direct"] as const;
+const cases = [
+  ["pooler", (url: string) => drizzle(url)],
+  ["direct", (url: string) => drizzle(url)],
+  [
+    "pooler",
+    (url: string) => drizzle({ client: new Pool({ connectionString: url }) }),
+  ],
+  [
+    "direct",
+    (url: string) => drizzle({ client: new Pool({ connectionString: url }) }),
+  ],
+] as const;
 
-describe.each(endpoints)("node-postgres (%s)", (endpoint) => {
+describe.each(cases)("node-postgres (%s)", (endpoint, makeDb) => {
   neonTesting({ endpoint });
 
   test("create table", async () => {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+    const pool = makeDb(process.env.DATABASE_URL!);
 
-    await pool.query(`
+    await pool.execute(`
       CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL UNIQUE
       )
     `);
 
-    const newUser = await pool.query(`
+    const newUser = await pool.execute(`
       INSERT INTO users (name)
       VALUES ('Ellen Ripley')
       RETURNING *
     `);
     expect(newUser.rows[0]).toStrictEqual({ id: 1, name: "Ellen Ripley" });
 
-    const users = await pool.query(`SELECT * FROM users`);
+    const users = await pool.execute(`SELECT * FROM users`);
     expect(users.rows).toStrictEqual([{ id: 1, name: "Ellen Ripley" }]);
 
     // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    await pool.end();
+    await pool.$client.end();
   });
 
   test("tests are not isolated within a test file", async () => {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const pool = makeDb(process.env.DATABASE_URL!);
 
-    const newUser = await pool.query(`
+    const newUser = await pool.execute(`
       INSERT INTO users (name)
       VALUES ('Rebecca Jorden')
       RETURNING *
     `);
     expect(newUser.rows).toStrictEqual([{ id: 2, name: "Rebecca Jorden" }]);
 
-    const users = await pool.query(`SELECT * FROM users`);
+    const users = await pool.execute(`SELECT * FROM users`);
     expect(users.rows).toStrictEqual([
       // Ellen Ripley is already in the table from the previous test
       { id: 1, name: "Ellen Ripley" },
@@ -60,23 +73,23 @@ describe.each(endpoints)("node-postgres (%s)", (endpoint) => {
     ]);
 
     // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    await pool.end();
+    await pool.$client.end();
   });
 
   test("interactive transactions are supported", async () => {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+    const pool = makeDb(process.env.DATABASE_URL!);
 
     try {
-      await pool.query("BEGIN");
-      await pool.query(`INSERT INTO users (name) VALUES ('Private Vasquez')`);
+      await pool.execute("BEGIN");
+      await pool.execute(`INSERT INTO users (name) VALUES ('Private Vasquez')`);
       // Duplicate unique constraint error - will roll back the transaction
-      await pool.query(`INSERT INTO users (name) VALUES ('Private Vasquez')`);
-      await pool.query("COMMIT");
+      await pool.execute(`INSERT INTO users (name) VALUES ('Private Vasquez')`);
+      await pool.execute("COMMIT");
     } catch {
-      await pool.query("ROLLBACK");
+      await pool.execute("ROLLBACK");
     }
 
-    const users = await pool.query(`SELECT * FROM users`);
+    const users = await pool.execute(`SELECT * FROM users`);
     expect(users.rows).toStrictEqual([
       { id: 1, name: "Ellen Ripley" },
       { id: 2, name: "Rebecca Jorden" },
@@ -84,6 +97,6 @@ describe.each(endpoints)("node-postgres (%s)", (endpoint) => {
     ]);
 
     // 👎 Have to manually end the connection unless disabling `deleteBranch`
-    await pool.end();
+    await pool.$client.end();
   });
 });

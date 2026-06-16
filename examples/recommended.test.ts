@@ -6,6 +6,7 @@ import { Pool } from "@neondatabase/serverless";
 // Enable Neon test branch for this test file
 neonTesting({
   // Recommended for Neon WebSocket drivers to automatically close connections
+  // (Vitest only)
   autoCloseWebSockets: true,
 });
 
