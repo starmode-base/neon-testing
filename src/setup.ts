@@ -1,13 +1,10 @@
-// Overwrites any existing DATABASE_URL with a sentinel so a test file that
-// forgot to call `neonTesting()` can't reach the pre-configured database.
-// Loaded as a test-runner preload (Vitest `setupFiles` / Bun `bunfig`
-// `preload`).
-//
-// A sentinel string (rather than `delete`) keeps the value a string for
-// consumers that type DATABASE_URL as required; connecting to it fails loudly.
+import { CLEARED_DATABASE_URL } from "./lib/cleared-database-url";
+
+// Overwrites any existing DATABASE_URL so a test file that forgot to call
+// `neonTesting()` can't reach the pre-configured database. Loaded as a
+// test-runner preload (Vitest `setupFiles` / Bun `bunfig` `preload`).
 if (process.env.DATABASE_URL && process.env.NEON_TESTING_DEBUG === "true") {
-  console.debug("[neon-testing] Clearing existing DATABASE_URL");
+  console.debug("[neon-testing] Overwriting existing DATABASE_URL");
 }
 
-process.env.DATABASE_URL =
-  "neon-testing: DATABASE_URL cleared, call neonTesting()";
+process.env.DATABASE_URL = CLEARED_DATABASE_URL;

@@ -10,6 +10,7 @@ import { applySslMode } from "./lib/ssl";
 import { validateExpiresIn } from "./lib/expires-in";
 import { neonWsErrorHandler } from "./lib/ws-error";
 import { withRetry } from "./lib/with-retry";
+import { CLEARED_DATABASE_URL } from "./lib/cleared-database-url";
 
 /**
  * Test-runner lifecycle hooks
@@ -340,11 +341,9 @@ export function makeNeonTestingCore(
     });
 
     factoryOptions.hooks.afterAll(async () => {
-      // Overwrite with a sentinel (not `delete`) so DATABASE_URL no longer
-      // points at the test branch and stays a string under consumer types that
-      // declare it required.
-      process.env.DATABASE_URL =
-        "neon-testing: DATABASE_URL cleared, call neonTesting()";
+      // Overwrite (not `delete`) so DATABASE_URL no longer points at the test
+      // branch; see CLEARED_DATABASE_URL for why a sentinel rather than delete.
+      process.env.DATABASE_URL = CLEARED_DATABASE_URL;
 
       // Close all tracked Neon WebSocket connections before deleting the branch
       if (options.autoCloseWebSockets && neonSockets) {
