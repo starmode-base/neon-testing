@@ -21,9 +21,11 @@
         "vitest": "^4.1.9",
       },
       "peerDependencies": {
+        "@neondatabase/serverless": "^1",
         "vitest": "^3 || ^4",
       },
       "optionalPeers": [
+        "@neondatabase/serverless",
         "vitest",
       ],
     },
