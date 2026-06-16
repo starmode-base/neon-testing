@@ -5,7 +5,7 @@
     "": {
       "name": "neon-testing",
       "dependencies": {
-        "@neondatabase/api-client": "^2.7.2",
+        "@neondatabase/api-client": "2.7.1",
       },
       "devDependencies": {
         "@neondatabase/serverless": "^1.1.0",
@@ -39,7 +39,7 @@
 
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.1.5", "", { "dependencies": { "@tybys/wasm-util": "^0.10.2" }, "peerDependencies": { "@emnapi/core": "^1.7.1", "@emnapi/runtime": "^1.7.1" } }, "sha512-AWPoBRJ9tsnVhor4sjO7rkni+7p+2IAEFj6cx06UgP10jkQHqay/36uRV/bFkgrh18D9vb4cr8Q0Pthskgzy+Q=="],
 
-    "@neondatabase/api-client": ["@neondatabase/api-client@2.7.2", "", { "dependencies": { "axios": "^1.13.5" } }, "sha512-9pcoQerKObIxiyEqM2XyMAzUyaeAZJaQ81t8QEab5M0CyaiXTqzoLyNWem6EU13muyXCpAtxyPHSYBEZ/uRtFw=="],
+    "@neondatabase/api-client": ["@neondatabase/api-client@2.7.1", "", { "dependencies": { "axios": "^1.13.5" } }, "sha512-hEYOJ89xIa2eEXBu9HRKYTJc9lrmszhNc0SIxzJvNE/3Av4xK7vkXWQ3LWy0DTTFY4Kn6wfM2wAjRIjf/jOu6w=="],
 
     "@neondatabase/serverless": ["@neondatabase/serverless@1.1.0", "", {}, "sha512-r3ZZhRjEcfEdKIZnoB1RusNgvHuaBRqfCzV4Gi+5A9yUX0S4HTws/ASWqt13wL4y4I+0rqsWGdA2w7EQXHi3+Q=="],
 
