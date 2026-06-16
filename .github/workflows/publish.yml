@@ -78,6 +78,24 @@ jobs:
           node-version: "24.x"
           registry-url: "https://registry.npmjs.org"
 
+      - name: Setup Bun
+        # https://github.com/oven-sh/setup-bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Log versions
+        run: |
+          echo "Node: $(node -v)"
+          echo "npm: $(npm -v)"
+          echo "Bun: $(bun -v)"
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build package
+        run: bun run build
+
       - name: Verify tag matches package.json
         # The git tag drives the GitHub release, package.json drives npm
         # publish - refuse to release if they disagree (e.g. a hand-pushed tag

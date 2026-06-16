@@ -1,4 +1,4 @@
-import { CLEARED_DATABASE_URL } from "./lib/cleared-database-url";
+import { CLEARED_DATABASE_URL } from "./lib/cleared-database-url.js";
 
 // Overwrites any existing DATABASE_URL so a test file that forgot to call
 // `neonTesting()` can't reach the pre-configured database. Loaded as a

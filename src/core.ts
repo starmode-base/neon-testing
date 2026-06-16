@@ -6,11 +6,11 @@ import {
   EndpointType,
   type Branch,
 } from "@neondatabase/api-client";
-import { applySslMode } from "./lib/ssl";
-import { validateExpiresIn } from "./lib/expires-in";
-import { neonWsErrorHandler } from "./lib/ws-error";
-import { withRetry } from "./lib/with-retry";
-import { CLEARED_DATABASE_URL } from "./lib/cleared-database-url";
+import { applySslMode } from "./lib/ssl.js";
+import { validateExpiresIn } from "./lib/expires-in.js";
+import { neonWsErrorHandler } from "./lib/ws-error.js";
+import { withRetry } from "./lib/with-retry.js";
+import { CLEARED_DATABASE_URL } from "./lib/cleared-database-url.js";
 
 /**
  * Test-runner lifecycle hooks

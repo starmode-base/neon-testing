@@ -17,13 +17,29 @@
   "bugs": "https://github.com/starmode-base/neon-testing/issues",
   "type": "module",
   "exports": {
-    "./core": "./src/core.ts",
-    "./vitest": "./src/vitest.ts",
-    "./bun": "./src/bun.ts",
-    "./utils": "./src/utils.ts",
-    "./setup": "./src/setup.ts"
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    },
+    "./vitest": {
+      "types": "./dist/vitest.d.ts",
+      "import": "./dist/vitest.js"
+    },
+    "./bun": {
+      "types": "./dist/bun.d.ts",
+      "import": "./dist/bun.js"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "import": "./dist/utils.js"
+    },
+    "./setup": {
+      "types": "./dist/setup.d.ts",
+      "import": "./dist/setup.js"
+    }
   },
   "files": [
+    "dist",
     "src",
     "!src/**/*.test.ts"
   ],
@@ -31,8 +47,10 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "tsc --watch",
-    "check": "prettier --check . && tsc && bun run check:drift && bun run test",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "prepublishOnly": "bun run build",
+    "check": "prettier --check . && bun run build && tsc && bun run check:drift && bun run test",
     "check:drift": "diff -r -x neon-testing.ts tests-bun tests-vitest",
     "format": "prettier --write .",
     "test": "vitest run && bun test",
@@ -45,8 +63,8 @@
     "test:bun": "bun test",
     "test:bun:watch": "bun test --watch",
     "skills:update": "bunx skills add neondatabase/agent-skills",
-    "clean:soft": "rm -rf node_modules && bun install",
-    "clean:hard": "rm -rf node_modules bun.lock && bun install",
+    "clean:soft": "rm -rf node_modules dist && bun install",
+    "clean:hard": "rm -rf node_modules dist bun.lock && bun install",
     "release:patch": "bun pm version patch --message 'release: v%s'",
     "release:minor": "bun pm version minor --message 'release: v%s'",
     "release:major": "bun pm version major --message 'release: v%s'",
@@ -61,9 +79,13 @@
     "@neondatabase/api-client": "2.7.1"
   },
   "peerDependencies": {
+    "@neondatabase/serverless": "^1",
     "vitest": "^3 || ^4"
   },
   "peerDependenciesMeta": {
+    "@neondatabase/serverless": {
+      "optional": true
+    },
     "vitest": {
       "optional": true
     }
