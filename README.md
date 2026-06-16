@@ -31,7 +31,7 @@ Each test file runs against its own isolated PostgreSQL database (Neon branch), 
 - 🔄 **Isolated test environments** - Each test file runs against its own Postgres database with your actual schema and constraints
 - 🧹 **Automatic cleanup** - Neon test branches are created and destroyed automatically
 - 🐛 **Debug friendly** - Option to preserve test branches for debugging failed tests
-- 🛡️ **TypeScript native** - With JavaScript support
+- 🛡️ **TypeScript only** - Ships TypeScript source files
 - 🎯 **ESM only** - No CommonJS support
 
 ## How it works
