@@ -340,7 +340,11 @@ export function makeNeonTestingCore(
     });
 
     factoryOptions.hooks.afterAll(async () => {
-      delete process.env.DATABASE_URL;
+      // Overwrite with a sentinel (not `delete`) so DATABASE_URL no longer
+      // points at the test branch and stays a string under consumer types that
+      // declare it required.
+      process.env.DATABASE_URL =
+        "neon-testing: DATABASE_URL cleared, call neonTesting()";
 
       // Close all tracked Neon WebSocket connections before deleting the branch
       if (options.autoCloseWebSockets && neonSockets) {
