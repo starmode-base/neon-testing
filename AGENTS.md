@@ -1,5 +1,5 @@
 - When writing prose, don't narrate your own process
-- Never use title case
+- Use sentence case, not title case
 - Test expected behavior, never implementation logic
 - Before finishing, `bun run check` must pass
 
