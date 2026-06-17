@@ -527,6 +527,7 @@ Releases are published via CI when a version tag is pushed. Use these scripts to
 bun run release:patch   # 1.2.3 → 1.2.4
 bun run release:minor   # 1.2.3 → 1.3.0
 bun run release:major   # 1.2.3 → 2.0.0
+bun run release:stable  # 2.0.0-beta.1 → 2.0.0
 ```
 
 **Beta releases:**
@@ -539,6 +540,16 @@ bun run release:beta:major    # Start beta for major: 1.2.3 → 2.0.0-beta.0
 ```
 
 Use `release:beta` for most beta releases. It bumps the patch version once when starting from stable, then increments the beta number for subsequent releases. Use `release:beta:minor` or `release:beta:major` only when starting a beta cycle for a larger version bump.
+
+Use `release:stable` to promote the current beta to its stable version. It removes the prerelease suffix, so `1.2.4-beta.0` becomes `1.2.4`, `1.3.0-beta.0` becomes `1.3.0`, and `3.0.0-beta.1` becomes `3.0.0`.
+
+For example, a breaking-change cycle from `2.7.0` to `3.0.0` looks like:
+
+```sh
+bun run release:beta:major # 2.7.0 → 3.0.0-beta.0
+bun run release:beta       # 3.0.0-beta.0 → 3.0.0-beta.1
+bun run release:stable     # 3.0.0-beta.1 → 3.0.0
+```
 
 The scripts bump the version, create a git tag, and push to trigger CI. The command will abort if there are uncommitted changes.
 
