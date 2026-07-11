@@ -8,12 +8,12 @@
   "editor.rulers": [80],
   "editor.tabSize": 2,
   "files.insertFinalNewline": true,
+  "files.readonlyInclude": { "**/bun.lock": true, "**/skills/**": true },
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
   "npm.packageManager": "bun",
   "npm.scriptRunner": "bun",
-  "search.exclude": { "**/bun.lock": true, "**/skills/**": true },
-  "files.readonlyInclude": { "**/bun.lock": true, "**/skills/**": true },
-  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
-  "js/ts.tsdk.path": "node_modules/typescript/lib"
+  "search.exclude": { "**/bun.lock": true, "**/skills/**": true }
 }
