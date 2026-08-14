@@ -177,10 +177,10 @@ export function makeNeonTestingCore(
         data.annotations[branch.id]?.value["integration-test"] === "true";
 
       if (isTestBranch) {
-        await apiClient.deleteProjectBranch(
-          factoryOptions.projectId,
-          branch.id,
-        );
+        await apiClient.deleteProjectBranch({
+          projectId: factoryOptions.projectId,
+          branchId: branch.id,
+        });
       }
     }
   }
@@ -302,7 +302,10 @@ export function makeNeonTestingCore(
         throw new Error("No branch to delete");
       }
 
-      await apiClient.deleteProjectBranch(options.projectId, branch.id);
+      await apiClient.deleteProjectBranch({
+        projectId: options.projectId,
+        branchId: branch.id,
+      });
       branch = undefined;
     }
 
