@@ -521,8 +521,9 @@ Create a free Neon project at [neon.com](https://neon.com/) to test with.
 
 Update the version in `package.json` when you want to cut a release. CI publishes any version that is not already on npm, from any branch, once the checks pass.
 
+- Versions must look like `3.1.0` or `3.1.0-beta.0`; anything else is refused
 - A version already on npm is skipped, so re-pushing and re-running are always safe
-- Prereleases publish under a dist-tag named by the first prerelease identifier (`3.1.0-beta.0` → `beta`); stable versions publish as `latest`
+- The npm dist-tag comes from the version: `3.1.0` → `latest`, `3.1.0-beta.0` → `beta`
 - A prerelease named `latest` (`3.1.0-latest.0`) is refused, since it would hijack the stable tag
 
 ## Author

@@ -17,10 +17,15 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request_target' }}
 
 jobs:
-  # Keep in sync with the check job in release.yml. Differs only in the
-  # PR-head checkout ref, which is meaningless there
+  # Keep in sync with the check job in release.yml. Differs only in the job
+  # guard (the fork guard here, the gate dependency there) and the PR-head
+  # checkout ref
   check:
+    # Skip in forks - the checks need this repo's Neon secrets, so fork runs
+    # would only fail red and waste their minutes
+    if: github.repository == 'starmode-base/neon-testing'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     # SECURITY: this job runs repo code (tests, dev dependencies) - including
     # fork code after approval - never give it a write-capable GITHUB_TOKEN
