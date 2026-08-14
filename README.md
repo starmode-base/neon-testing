@@ -555,6 +555,6 @@ The scripts bump the version, create a git tag, and push to trigger CI. The comm
 
 ## Author
 
-Hi, I'm [Mikael Lirbank](https://www.lirbank.com/). I build robust, reliable, high-quality AI systems. I care deeply about quality—AI evals, robust test suites, clean data models, and clean architecture.
+Hi, I'm [Mikael Lirbank](https://www.lirbank.com/), an independent consultant in San Francisco helping teams ship elegant software.
 
-Need help building elegant systems? [I'm happy to help](https://www.lirbank.com/).
+My main deliverable is peace of mind.
