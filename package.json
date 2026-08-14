@@ -64,17 +64,7 @@
     "test:bun:watch": "bun test --watch",
     "skills:update": "bunx skills add neondatabase/agent-skills",
     "clean:soft": "rm -rf node_modules dist && bun install",
-    "clean:hard": "rm -rf node_modules dist bun.lock && bun install",
-    "release:patch": "bun pm version patch --message 'release: v%s'",
-    "release:minor": "bun pm version minor --message 'release: v%s'",
-    "release:major": "bun pm version major --message 'release: v%s'",
-    "release:stable": "bun pm version $(node -p \"require('./package.json').version.replace(/-.*/, '')\") --message 'release: v%s'",
-    "release:beta": "bun pm version prerelease --preid=beta --message 'release: v%s'",
-    "release:beta:patch": "bun pm version prepatch --preid=beta --message 'release: v%s'",
-    "release:beta:minor": "bun pm version preminor --preid=beta --message 'release: v%s'",
-    "release:beta:major": "bun pm version premajor --preid=beta --message 'release: v%s'",
-    "preversion": "test \"$(git branch --show-current)\" = main && git pull --ff-only",
-    "postversion": "git push --follow-tags"
+    "clean:hard": "rm -rf node_modules dist bun.lock && bun install"
   },
   "dependencies": {
     "@neondatabase/api-client": "^2.7.3"

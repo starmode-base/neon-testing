@@ -1,17 +1,90 @@
 name: Publish
 
+# State-driven publishing: pushing a commit whose package.json version is not
+# yet on npm is the release trigger. Prereleases publish under a dist-tag
+# derived from the prerelease identifier (3.1.0-beta.0 → beta); stable
+# versions publish as latest. The manual approval on the publish job is the
+# only policy gate. The git tag and GitHub release are created after a
+# successful publish - no release scripts, no hand-pushed tags.
 on:
   push:
-    tags:
-      - "v*"
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+# One release per branch at a time; never kill a publish in flight
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  # Keep in sync with the check job in test.yml. Differs only in what is
-  # event-specific there: the `if` skip guard and the checkout `ref` (here the
-  # default checkout is the tagged commit). The id-token/contents grants live
-  # on the publish job only.
-  check:
+  gate:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      publish: ${{ steps.check.outputs.publish }}
+      version: ${{ steps.check.outputs.version }}
+      npm_tag: ${{ steps.tag.outputs.npm_tag }}
+      prerelease: ${{ steps.tag.outputs.prerelease }}
+    steps:
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          # Nothing after clone needs git auth - don't leave a token in
+          # .git/config for repo code to read
+          persist-credentials: false
+
+      - name: Skip when the version is already on npm
+        id: check
+        run: |
+          version="$(jq -r .version package.json)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          published="$(npm view "neon-testing@$version" version 2>/dev/null || true)"
+          if [ -n "$published" ]; then
+            echo "neon-testing@$version is already on npm - nothing to publish"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "neon-testing@$version is not on npm - releasing"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Derive the npm dist-tag
+        # First prerelease identifier (3.1.0-canary.2 → canary); stable gets
+        # latest. Refuse the one identifier that could hijack the stable tag.
+        id: tag
+        if: steps.check.outputs.publish == 'true'
+        env:
+          VERSION: ${{ steps.check.outputs.version }}
+        run: |
+          case "$VERSION" in
+            *-*)
+              tag="${VERSION#*-}"
+              tag="${tag%%.*}"
+              prerelease=true
+              ;;
+            *)
+              tag="latest"
+              prerelease=false
+              ;;
+          esac
+          if [ "$prerelease" = "true" ] && [ "$tag" = "latest" ]; then
+            echo "Prerelease $VERSION must not take the latest dist-tag"
+            exit 1
+          fi
+          echo "npm_tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+
+  # Keep in sync with the check job in test.yml. Differs only in the PR-head
+  # checkout ref, which is meaningless here. On a releasing push to main both
+  # workflows run the check; releases are rare enough that the duplicate run
+  # is fine.
+  check:
+    needs: gate
+    if: needs.gate.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     # SECURITY: this job runs repo code (tests, dev dependencies) and must not
     # hold publish rights - never give it a write-capable GITHUB_TOKEN
@@ -21,7 +94,7 @@ jobs:
     steps:
       - name: Checkout
         # https://github.com/actions/checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           # Nothing after clone needs git auth - don't leave a token in
           # .git/config for repo code to read
@@ -29,13 +102,13 @@ jobs:
 
       - name: Setup Node.js
         # https://github.com/actions/setup-node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24.x"
 
       - name: Setup Bun
         # https://github.com/oven-sh/setup-bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: latest
 
@@ -57,30 +130,39 @@ jobs:
         run: bun run check
 
   publish:
-    needs: check
+    needs: [gate, check]
+    if: needs.gate.outputs.publish == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # Requires manual approval before publishing - configure reviewers at:
+    # https://github.com/starmode-base/neon-testing/settings/environments
+    environment: release
 
     permissions:
       id-token: write # Required for Trusted Publishers (OIDC) - https://docs.npmjs.com/trusted-publishers
-      contents: write # Required for creating releases - https://github.com/softprops/action-gh-release?tab=readme-ov-file#permissions
+      contents: write # Required for creating the release tag and GitHub release
 
     steps:
       - name: Checkout
         # https://github.com/actions/checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          # npm publish uses OIDC and gh uses GH_TOKEN - git auth is not needed
+          persist-credentials: false
 
       - name: Setup Node.js
         # https://github.com/actions/setup-node
         # Node 24 bundles npm >= 11.5.1, required for Trusted Publishers
         # https://docs.npmjs.com/trusted-publishers
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24.x"
           registry-url: "https://registry.npmjs.org"
 
       - name: Setup Bun
         # https://github.com/oven-sh/setup-bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: latest
 
@@ -96,46 +178,27 @@ jobs:
       - name: Build package
         run: bun run build
 
-      - name: Verify tag matches package.json
-        # The git tag drives the GitHub release, package.json drives npm
-        # publish - refuse to release if they disagree (e.g. a hand-pushed tag
-        # on the wrong commit)
-        run: |
-          TAG_VERSION=${GITHUB_REF#refs/tags/v}
-          PKG_VERSION=$(jq -r .version package.json)
-          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
-            echo "::error::Tag v$TAG_VERSION does not match package.json version $PKG_VERSION"
-            exit 1
-          fi
-
-      - name: Determine npm tag
-        id: meta
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-          if [[ "$VERSION" == *"-beta"* ]]; then
-            echo "npm_tag=beta" >> $GITHUB_OUTPUT
-            echo "prerelease=true" >> $GITHUB_OUTPUT
-          elif [[ "$VERSION" == *"-canary"* ]] || [[ "$VERSION" == *"-alpha"* ]]; then
-            echo "npm_tag=canary" >> $GITHUB_OUTPUT
-            echo "prerelease=true" >> $GITHUB_OUTPUT
-          else
-            echo "npm_tag=latest" >> $GITHUB_OUTPUT
-            echo "prerelease=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Publish to npm
         # Publish uses OIDC - no token needed
         # Provenance is automatically generated
         # https://docs.npmjs.com/trusted-publishers
-        run: npm publish --tag ${{ steps.meta.outputs.npm_tag }}
+        env:
+          NPM_TAG: ${{ needs.gate.outputs.npm_tag }}
+        run: npm publish --tag "$NPM_TAG"
 
-      - name: Create GitHub Release
-        # https://github.com/softprops/action-gh-release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.meta.outputs.version }}
-          name: v${{ steps.meta.outputs.version }}
-          prerelease: ${{ steps.meta.outputs.prerelease }}
-          generate_release_notes: true
+      - name: Create the GitHub release
+        # --target pins the tag to the released commit; prereleases are marked
+        # so GitHub never shows one as the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.gate.outputs.version }}
+          PRERELEASE: ${{ needs.gate.outputs.prerelease }}
+          TARGET: ${{ github.sha }}
+        run: |
+          if [ "$PRERELEASE" = "true" ]; then
+            prerelease="--prerelease"
+          else
+            prerelease=""
+          fi
+          gh release create "v$VERSION" --title "v$VERSION" \
+            --target "$TARGET" --generate-notes $prerelease

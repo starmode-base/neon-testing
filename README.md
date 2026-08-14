@@ -519,39 +519,11 @@ Create a free Neon project at [neon.com](https://neon.com/) to test with.
 
 ### Release
 
-Releases are published via CI when a version tag is pushed. Use these scripts to bump the version and trigger a release:
+Bump the version in `package.json` and push. CI publishes it once the checks pass and you approve the release. Any version works, with three rules:
 
-**Stable releases:**
-
-```sh
-bun run release:patch   # 1.2.3 → 1.2.4
-bun run release:minor   # 1.2.3 → 1.3.0
-bun run release:major   # 1.2.3 → 2.0.0
-bun run release:stable  # 2.0.0-beta.1 → 2.0.0
-```
-
-**Beta releases:**
-
-```sh
-bun run release:beta          # Default: 1.2.3 → 1.2.4-beta.0, then 1.2.4-beta.1, etc.
-bun run release:beta:patch    # Start beta for patch: 1.2.3 → 1.2.4-beta.0
-bun run release:beta:minor    # Start beta for minor: 1.2.3 → 1.3.0-beta.0
-bun run release:beta:major    # Start beta for major: 1.2.3 → 2.0.0-beta.0
-```
-
-Use `release:beta` for most beta releases. It bumps the patch version once when starting from stable, then increments the beta number for subsequent releases. Use `release:beta:minor` or `release:beta:major` only when starting a beta cycle for a larger version bump.
-
-Use `release:stable` to promote the current beta to its stable version. It removes the prerelease suffix, so `1.2.4-beta.0` becomes `1.2.4`, `1.3.0-beta.0` becomes `1.3.0`, and `3.0.0-beta.1` becomes `3.0.0`.
-
-For example, a breaking-change cycle from `2.7.0` to `3.0.0` looks like:
-
-```sh
-bun run release:beta:major # 2.7.0 → 3.0.0-beta.0
-bun run release:beta       # 3.0.0-beta.0 → 3.0.0-beta.1
-bun run release:stable     # 3.0.0-beta.1 → 3.0.0
-```
-
-The scripts bump the version, create a git tag, and push to trigger CI. The command will abort if there are uncommitted changes.
+- A version already on npm is skipped, so re-pushing and re-running are always safe
+- Prereleases publish under a dist-tag named by the first prerelease identifier (`3.1.0-beta.0` → `beta`); stable versions publish as `latest`
+- A prerelease named `latest` (`3.1.0-latest.0`) is refused, since it would hijack the stable tag
 
 ## Author
 
