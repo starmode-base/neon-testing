@@ -1,4 +1,4 @@
-name: Integration tests
+name: Check
 
 on:
   push:
@@ -13,11 +13,11 @@ on:
 # Cancel superseded runs of the same PR to avoid piling up Neon branches; main
 # pushes queue instead so every main commit keeps a completed run
 concurrency:
-  group: test-${{ github.event.pull_request.number || github.ref }}
+  group: check-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request_target' }}
 
 jobs:
-  # Keep in sync with the check job in publish.yml. Differs only in the
+  # Keep in sync with the check job in release.yml. Differs only in the
   # PR-head checkout ref, which is meaningless there
   check:
     runs-on: ubuntu-latest

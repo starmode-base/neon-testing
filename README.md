@@ -1,6 +1,6 @@
 # Neon Testing
 
-[![Integration tests](https://github.com/starmode-base/neon-testing/actions/workflows/test.yml/badge.svg)](https://github.com/starmode-base/neon-testing/actions/workflows/test.yml)
+[![Check](https://github.com/starmode-base/neon-testing/actions/workflows/check.yml/badge.svg)](https://github.com/starmode-base/neon-testing/actions/workflows/check.yml)
 [![npm version](https://img.shields.io/npm/v/neon-testing)](https://www.npmjs.com/package/neon-testing)
 [![GitHub release](https://img.shields.io/github/v/release/starmode-base/neon-testing)](https://github.com/starmode-base/neon-testing/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
@@ -394,7 +394,7 @@ Schema-only branches (`schemaOnly: true`) are root branches in Neon, which have 
 
 It's easy to run Neon integration tests in CI/CD pipelines:
 
-- **GitHub Actions** — see the [example workflow](.github/workflows/test.yml)
+- **GitHub Actions** — see the [example workflow](.github/workflows/check.yml)
 - **Vercel** — either
   - add `vitest run` to the `build` script in [package.json](https://github.com/starmode-base/template-tanstack-start/blob/83c784e164b55fd8d59c5b57b907251e5eb03de1/app/package.json#L11), or
   - add `vitest run` to the _Build Command_ in the Vercel dashboard

@@ -1,11 +1,8 @@
-name: Publish
+name: Release
 
-# State-driven publishing: pushing a commit whose package.json version is not
-# yet on npm is the release trigger. Prereleases publish under a dist-tag
-# derived from the prerelease identifier (3.1.0-beta.0 → beta); stable
-# versions publish as latest. The manual approval on the publish job is the
-# only policy gate. The git tag and GitHub release are created after a
-# successful publish - no release scripts, no hand-pushed tags.
+# State-driven publishing: a push whose package.json version is not yet on npm
+# is the release trigger (rules in README > Release). The manual approval on
+# the publish job is the only policy gate.
 on:
   push:
     branches: ["**"]
@@ -15,7 +12,7 @@ permissions:
 
 # One release per branch at a time; never kill a publish in flight
 concurrency:
-  group: publish-${{ github.ref }}
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -76,7 +73,7 @@ jobs:
           echo "npm_tag=$tag" >> "$GITHUB_OUTPUT"
           echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
 
-  # Keep in sync with the check job in test.yml. Differs only in the PR-head
+  # Keep in sync with the check job in check.yml. Differs only in the PR-head
   # checkout ref, which is meaningless here. On a releasing push to main both
   # workflows run the check; releases are rare enough that the duplicate run
   # is fine.
