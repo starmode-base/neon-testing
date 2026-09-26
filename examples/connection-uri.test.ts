@@ -1,27 +1,14 @@
 /**
- * Tests for the connection URI generation logic.
+ * Options that shape the connection URI: `endpoint` (pooler vs direct) and
+ * `sslMode`.
  *
- * Note: These tests primarily validate the `endpoint` option (pooler vs direct).
- * Custom role selection (`roleName` option) is not explicitly tested here as it
- * requires a parent branch with pre-provisioned additional roles.
+ * Connecting as a non-owner role (`roleName`) is not covered here because it
+ * requires a parent branch with a pre-provisioned role.
  */
 import { describe, expect, test } from "vitest";
 import { neonTesting } from "./neon-testing";
 import { Pool } from "@neondatabase/serverless";
 import pg from "pg";
-
-describe("getConnectionUri API", () => {
-  neonTesting({ autoCloseWebSockets: true });
-
-  test("connects with default role", async () => {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    const result = await pool.query("SELECT current_user as role");
-
-    expect(result.rows[0].role).toBeDefined();
-    expect(typeof result.rows[0].role).toBe("string");
-    await pool.end();
-  });
-});
 
 describe("endpoint: pooler", () => {
   neonTesting({ endpoint: "pooler", autoCloseWebSockets: true });

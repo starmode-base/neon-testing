@@ -11,6 +11,7 @@ import { validateExpiresIn } from "./lib/expires-in.js";
 import { neonWsErrorHandler } from "./lib/ws-error.js";
 import { withRetry } from "./lib/with-retry.js";
 import { CLEARED_DATABASE_URL } from "./lib/cleared-database-url.js";
+import { pickName } from "./lib/pick-name.js";
 
 /**
  * Test-runner lifecycle hooks
@@ -249,45 +250,27 @@ export function makeNeonTestingCore(
 
       branch = data.branch;
 
-      // Determine role and database (handles multi-role/database projects)
-      const targetRole =
-        options.roleName ??
-        data.roles?.find((r) => r.name === "neondb_owner")?.name ??
-        data.roles?.[0]?.name;
-      const targetDatabase =
-        options.databaseName ??
-        data.databases?.find((d) => d.name === "neondb")?.name ??
-        data.databases?.[0]?.name;
-
-      if (!targetRole) {
-        throw new Error("No role available in branch");
-      }
-      if (!targetDatabase) {
-        throw new Error("No database available in branch");
-      }
-
-      // Validate specified role exists
-      if (
-        options.roleName &&
-        !data.roles?.some((r) => r.name === options.roleName)
-      ) {
-        throw new Error(`Role not found: ${options.roleName}`);
-      }
-
-      // Validate specified database exists
-      if (
-        options.databaseName &&
-        !data.databases?.some((d) => d.name === options.databaseName)
-      ) {
-        throw new Error(`Database not found: ${options.databaseName}`);
-      }
+      // Pick the role and database to connect as (handles multi-role and
+      // multi-database projects)
+      const roleName = pickName(
+        "role",
+        data.roles,
+        options.roleName,
+        "neondb_owner",
+      );
+      const databaseName = pickName(
+        "database",
+        data.databases,
+        options.databaseName,
+        "neondb",
+      );
 
       // Use getConnectionUri API (works for all cases, including multi-role projects)
       const { data: uriData } = await apiClient.getConnectionUri({
         projectId: options.projectId,
         branch_id: branch.id,
-        role_name: targetRole,
-        database_name: targetDatabase,
+        role_name: roleName,
+        database_name: databaseName,
         pooled: options.endpoint !== "direct",
       });
 
